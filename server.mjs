@@ -60,6 +60,9 @@ const sendJson = (res, code, obj) => {
 
 http.createServer(async (req, res) => {
   const u = new URL(req.url, `http://localhost:${PORT}`);
+  // CORS: o site (tbhbau.com.br) busca o snapshot deste servidor (api.tbhbau.com.br). Leitura pública.
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
 
   // ── API: orderbook de 1 item (o front faz polling de vários, com throttle) ──
   if (u.pathname === '/api/orderbook') {
