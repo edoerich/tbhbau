@@ -1,0 +1,13 @@
+{
+  "name": "tbhbau",
+  "version": "1.0.0",
+  "description": "Avaliador de baú do TBH: Task Bar Hero no Mercado Steam — lê o save no navegador e mostra valor, venda imediata e os 4 melhores itens pra lançar.",
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "worker": "node worker.mjs"
+  },
+  "author": "edelrich",
+  "license": "MIT",
+  "engines": { "node": ">=20" }
+}
