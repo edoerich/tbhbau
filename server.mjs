@@ -7,6 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const PUB = path.join(ROOT, 'public'); // arquivos estáticos do site (deploy do Cloudflare Pages)
 const PORT = Number(process.env.PORT || 5270);
 const APPID = 3678970;
 const UA = 'giba-steam-market/1.0 (uso pessoal read-only)';
@@ -68,11 +69,11 @@ http.createServer(async (req, res) => {
     catch (e) { return sendJson(res, e.code === 429 ? 429 : 500, { error: e.message, hash }); }
   }
 
-  // ── estáticos ──
+  // ── estáticos (servidos de public/) ──
   let p = decodeURIComponent(u.pathname);
   if (p === '/') p = '/index.html';
-  const file = path.join(ROOT, path.normalize(p).replace(/^(\.\.[/\\])+/, ''));
-  if (!file.startsWith(ROOT)) { res.writeHead(403); return res.end('forbidden'); }
+  const file = path.join(PUB, path.normalize(p).replace(/^(\.\.[/\\])+/, ''));
+  if (!file.startsWith(PUB)) { res.writeHead(403); return res.end('forbidden'); }
   fs.readFile(file, (err, buf) => {
     if (err) { res.writeHead(404); return res.end('not found'); }
     res.writeHead(200, { 'Content-Type': (TYPES[path.extname(file)] || 'application/octet-stream') + '; charset=utf-8' });

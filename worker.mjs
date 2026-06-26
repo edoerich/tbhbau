@@ -7,7 +7,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const DATA = path.join(ROOT, 'data');
+const DATA = path.join(ROOT, 'public', 'data'); // o site (public/) lê este snapshot
 const SNAP = path.join(DATA, 'snapshot.json');
 const APPID = 3678970;
 const UA = 'giba-steam-market/1.0 (uso pessoal read-only)';
