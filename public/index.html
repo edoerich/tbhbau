@@ -12,6 +12,7 @@
   * { box-sizing: border-box; }
   body { margin:0; font:15px/1.5 system-ui,Segoe UI,Roboto,sans-serif; background:var(--bg); color:var(--txt); }
   header { padding:24px 20px 8px; max-width:1000px; margin:0 auto; }
+  .head-row { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
   h1 { margin:0 0 4px; font-size:22px; }
   .sub { color:var(--mut); font-size:14px; }
   main { max-width:1000px; margin:0 auto; padding:16px 20px 60px; }
@@ -44,7 +45,9 @@
   .cur-toggle { display:inline-flex; border:1px solid var(--line); border-radius:8px; overflow:hidden; }
   .cur-toggle button { background:var(--card); color:var(--mut); border:0; padding:7px 12px; cursor:pointer; font:inherit; }
   .cur-toggle button.on { background:var(--acc); color:#06121c; font-weight:600; }
+  .lang-toggle button { padding:5px 10px; font-size:13px; }
   .pend { color:var(--warn); font-size:11px; }
+  .disclaimer { background:#1f1a10; border:1px solid #4a3d1f; border-radius:8px; padding:9px 12px; font-size:12.5px; color:#d9cba0; margin:4px 0 4px; }
   .top4 { background:linear-gradient(135deg,#16241a,#1a1d24); border:1px solid #2f5a30; border-radius:12px; padding:16px; margin:20px 0; }
   .top4 h2 { margin:0 0 4px; font-size:17px; color:var(--green); }
   .top4 .hint { color:var(--mut); font-size:13px; margin-bottom:12px; }
@@ -61,7 +64,7 @@
   .adslot { max-width:1000px; margin:24px auto 0; min-height:90px; overflow:hidden; }
   .adslot .lbl { color:var(--mut); font-size:10px; text-transform:uppercase; letter-spacing:.08em; text-align:center; margin-bottom:4px; }
   .modal { position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
-  .modal.hidden { display:none; } /* vence o .modal display:flex quando fechado */
+  .modal.hidden { display:none; }
   .modal-box { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; max-width:360px; width:100%; text-align:center; position:relative; }
   .modal-x { position:absolute; top:8px; right:12px; background:none; border:0; color:var(--mut); font-size:24px; cursor:pointer; }
   .pix-qr { width:240px; height:240px; background:#fff; border-radius:10px; padding:8px; }
@@ -73,20 +76,27 @@
 </head>
 <body>
 <header>
-  <h1>TBH: Baú → Mercado Steam</h1>
-  <div class="sub">Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador — nada é enviado pra nenhum servidor.</b></div>
+  <div class="head-row">
+    <h1 data-i18n="h1">TBH: Baú → Mercado Steam</h1>
+    <div class="cur-toggle lang-toggle" id="langToggle">
+      <button data-lang="pt" class="on">PT</button>
+      <button data-lang="en">EN</button>
+    </div>
+  </div>
+  <div class="sub" data-i18n-html="sub">Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador — nada é enviado pra nenhum servidor.</b></div>
 </header>
 <main>
   <div id="drop">
-    <div>Arraste o <b>SaveFile_Live.es3</b> aqui, ou <b>clique para escolher</b></div>
-    <small>Fica em <code>%AppData%\LocalLow\TesseractStudio\TaskbarHero\</code></small>
-    <span class="badge">🔒 processado localmente · read-only</span>
+    <div data-i18n-html="drop_main">Arraste o <b>SaveFile_Live.es3</b> aqui, ou <b>clique para escolher</b></div>
+    <small data-i18n-html="drop_path">Fica em <code>%AppData%\LocalLow\TesseractStudio\TaskbarHero\</code></small>
+    <span class="badge" data-i18n="drop_badge">🔒 processado localmente · read-only</span>
   </div>
   <input id="file" type="file" accept=".es3" class="hidden">
   <div id="status" class="note hidden"></div>
 
   <section id="result" class="hidden">
     <div class="summary" id="summary"></div>
+    <div id="disclaimer" class="disclaimer hidden"></div>
 
     <div id="top4" class="top4 hidden"></div>
 
@@ -95,18 +105,17 @@
         <button data-cur="brl" class="on">R$ Real</button>
         <button data-cur="usd">$ Dólar</button>
       </div>
-      <input id="q" type="search" placeholder="filtrar item…">
+      <input id="q" type="search" data-i18n-ph="q_ph" placeholder="filtrar item…">
       <span class="muted" id="count"></span>
-      <span class="muted" id="scanStatus" style="margin-left:auto"></span>
     </div>
     <table id="tbl">
       <thead><tr>
-        <th></th><th data-s="name">Item</th><th data-s="kind">Tipo</th>
-        <th class="num" data-s="qty">Qtd</th>
-        <th class="num" data-s="listing">Anúncio un.</th>
-        <th class="num" data-s="instant">Venda imediata (R$)</th>
-        <th data-s="buyCount">Liquidez</th>
-        <th class="num" data-s="subtotal">Subtotal anúncio</th>
+        <th></th><th data-s="name" data-i18n="th_item">Item</th><th data-s="kind" data-i18n="th_kind">Tipo</th>
+        <th class="num" data-s="qty" data-i18n="th_qty">Qtd</th>
+        <th class="num" data-s="listing" data-i18n="th_listing">Anúncio un.</th>
+        <th class="num" data-s="instant" data-i18n="th_instant">Venda imediata (R$)</th>
+        <th data-s="buyCount" data-i18n="th_liq">Liquidez</th>
+        <th class="num" data-s="subtotal" data-i18n="th_subtotal">Subtotal anúncio</th>
       </tr></thead>
       <tbody></tbody>
     </table>
@@ -115,7 +124,7 @@
 
   <!-- Slot de anúncio discreto (único). O adsbygoogle.js já está no <head>. -->
   <aside id="adslot" class="adslot" aria-label="anúncio">
-    <div class="lbl">Publicidade</div>
+    <div class="lbl" data-i18n="ad_label">Publicidade</div>
     <ins class="adsbygoogle"
          style="display:block"
          data-ad-client="ca-pub-1603507684488543"
@@ -129,24 +138,113 @@
 <div id="pixModal" class="modal hidden">
   <div class="modal-box">
     <button id="pixClose" class="modal-x" aria-label="fechar">×</button>
-    <h3 style="margin:0 0 4px">Apoiar via Pix ☕</h3>
-    <p class="muted" style="margin:0 0 12px">Escaneie o QR no app do banco, ou copie o código.</p>
+    <h3 style="margin:0 0 4px" data-i18n="pix_title">Apoiar via Pix ☕</h3>
+    <p class="muted" style="margin:0 0 12px" data-i18n="pix_desc">Escaneie o QR no app do banco, ou copie o código.</p>
     <img src="./pix-qr.svg" alt="QR Code Pix" class="pix-qr">
     <div class="pix-copy"><code id="pixCode"></code></div>
-    <button id="pixCopyBtn" class="btn">Copiar código Pix</button>
+    <button id="pixCopyBtn" class="btn" data-i18n="pix_copy">Copiar código Pix</button>
   </div>
 </div>
 <footer>
-  <div>Avaliador de baú do <b>TBH: Task Bar Hero</b> · seu save é lido só no navegador, nada é enviado.</div>
+  <div data-i18n-html="footer_1">Avaliador de baú do <b>TBH: Task Bar Hero</b> · seu save é lido só no navegador, nada é enviado.</div>
   <div style="margin-top:6px">
-    Feito por <b>edelrich</b> · <a id="pix" href="#" title="chave Pix">☕ Apoiar via Pix</a> ·
-    <a href="./privacidade.html">Privacidade</a> ·
-    baseado no projeto <a href="https://github.com/lezards/giba-steam-market" target="_blank">giba-steam-market</a> (MIT)
+    <span data-i18n="footer_made">Feito por</span> <b>edelrich</b> ·
+    <a id="pix" href="#" title="Pix" data-i18n="support_link">☕ Apoiar via Pix</a> ·
+    <a href="./privacidade.html" data-i18n="privacy_link">Privacidade</a> ·
+    <span data-i18n="footer_based">baseado no projeto</span> <a href="https://github.com/lezards/giba-steam-market" target="_blank">giba-steam-market</a> (MIT)
   </div>
 </footer>
 
 <script type="module">
 import { decryptES3, readStash } from './tbh-save.js';
+
+// ── i18n (PT/EN) ────────────────────────────────────────────────────────────
+const I18N = {
+  pt: {
+    h1: 'TBH: Baú → Mercado Steam',
+    sub: 'Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador — nada é enviado pra nenhum servidor.</b>',
+    drop_main: 'Arraste o <b>SaveFile_Live.es3</b> aqui, ou <b>clique para escolher</b>',
+    drop_path: 'Fica em <code>%AppData%\\LocalLow\\TesseractStudio\\TaskbarHero\\</code>',
+    drop_badge: '🔒 processado localmente · read-only',
+    q_ph: 'filtrar item…',
+    th_item: 'Item', th_kind: 'Tipo', th_qty: 'Qtd', th_listing: 'Anúncio un.',
+    th_instant: 'Venda imediata (R$)', th_liq: 'Liquidez', th_subtotal: 'Subtotal anúncio',
+    ad_label: 'Publicidade',
+    pix_title: 'Apoiar via Pix ☕', pix_desc: 'Escaneie o QR no app do banco, ou copie o código.',
+    pix_copy: 'Copiar código Pix', pix_copied: 'Copiado ✓',
+    footer_1: 'Avaliador de baú do <b>TBH: Task Bar Hero</b> · seu save é lido só no navegador, nada é enviado.',
+    footer_made: 'Feito por', support_link: '☕ Apoiar via Pix', privacy_link: 'Privacidade', footer_based: 'baseado no projeto',
+    st_total: 'Valor total — anúncio', st_instant: '💸 Venda imediata (R$)',
+    st_gear: 'Equipamentos', st_materials: 'Materiais', st_items: 'Itens no baú',
+    st_nlnm: 'Sem anúncio · sem mercado', st_brlpend: '⚠ BRL pendente', st_brlload: 'preço em R$ ainda carregando',
+    st_brlpend_n: n => `${n} itens`,
+    count_types: n => `${n} tipos`,
+    disclaimer: d => `Preços do Mercado Steam atualizados automaticamente a cada ~30 min — <b>não são em tempo real</b>. Confira o valor na Steam antes de vender. Última atualização: ${d}.`,
+    explain: 'Anúncio = preço de listagem (você espera vender). Venda imediata = maior ordem de compra (vende na hora).',
+    diag: (dups, other) => `${dups} refs duplicadas ignoradas. ${other} itens sem nome conhecido.`,
+    unrecognized: n => `Itens não reconhecidos (${n})`,
+    tag_nolisting: 'sem anúncio', price_pending: 'R$ pendente', no_order: 'sem ordem',
+    kind_gear: 'equip.', kind_material: 'material', kind_other: '?',
+    top4_title: '🚀 Top 4 pra lançar agora',
+    top4_hint: 'Os 4 itens mais lucrativos por <b>venda imediata</b> (bate na maior ordem de compra e vende na hora). Use na sua janela de 4 itens / 8h.',
+    top4_liq: (liq, n) => `liquidez ${liq} (${n} ordens)`,
+    top4_unit: 'un.',
+    top4_total: v => `Lançando esses 4 agora você recebe ≈ <b>${v}</b> na hora.`,
+    liq_alta: 'alta', liq_media: 'média', liq_baixa: 'baixa', liq_nenhuma: 'nenhuma',
+    s_loading: 'Carregando tabelas de itens e snapshot do mercado…',
+    s_reading: f => `Lendo <b>${f}</b>…`,
+    s_decrypting: 'Decifrando o save no navegador…',
+    s_crossing: 'Cruzando o baú com o Mercado Steam…',
+    s_error: msg => `Falha ao ler o save: ${msg}. Confira se é o <code>SaveFile_Live.es3</code> do TBH.`,
+  },
+  en: {
+    h1: 'TBH: Stash → Steam Market',
+    sub: 'Upload your <code>SaveFile_Live.es3</code> and see your stash value on the Steam Market. <b>The save is read 100% in your browser — nothing is sent to any server.</b>',
+    drop_main: 'Drag your <b>SaveFile_Live.es3</b> here, or <b>click to choose</b>',
+    drop_path: 'Located in <code>%AppData%\\LocalLow\\TesseractStudio\\TaskbarHero\\</code>',
+    drop_badge: '🔒 processed locally · read-only',
+    q_ph: 'filter item…',
+    th_item: 'Item', th_kind: 'Type', th_qty: 'Qty', th_listing: 'Listing ea.',
+    th_instant: 'Instant sell (R$)', th_liq: 'Liquidity', th_subtotal: 'Listing subtotal',
+    ad_label: 'Advertisement',
+    pix_title: 'Support via Pix ☕', pix_desc: 'Scan the QR in your bank app, or copy the code.',
+    pix_copy: 'Copy Pix code', pix_copied: 'Copied ✓',
+    footer_1: 'Stash evaluator for <b>TBH: Task Bar Hero</b> · your save is read only in the browser, nothing is sent.',
+    footer_made: 'Made by', support_link: '☕ Support via Pix', privacy_link: 'Privacy', footer_based: 'based on the project',
+    st_total: 'Total value — listing', st_instant: '💸 Instant sell (R$)',
+    st_gear: 'Equipment', st_materials: 'Materials', st_items: 'Items in stash',
+    st_nlnm: 'No listing · no market', st_brlpend: '⚠ BRL pending', st_brlload: 'BRL price still loading',
+    st_brlpend_n: n => `${n} items`,
+    count_types: n => `${n} types`,
+    disclaimer: d => `Steam Market prices update automatically every ~30 min — <b>not real-time</b>. Check the value on Steam before selling. Last update: ${d}.`,
+    explain: 'Listing = ask price (you wait to sell). Instant sell = highest buy order (sell right now).',
+    diag: (dups, other) => `${dups} duplicate refs ignored. ${other} items with unknown name.`,
+    unrecognized: n => `Unrecognized items (${n})`,
+    tag_nolisting: 'no listing', price_pending: 'BRL pending', no_order: 'no order',
+    kind_gear: 'gear', kind_material: 'material', kind_other: '?',
+    top4_title: '🚀 Top 4 to list now',
+    top4_hint: 'The 4 most profitable items by <b>instant sell</b> (hit the highest buy order and sell now). Use in your 4-items / 8h window.',
+    top4_liq: (liq, n) => `liquidity ${liq} (${n} orders)`,
+    top4_unit: 'ea.',
+    top4_total: v => `Listing these 4 now you get ≈ <b>${v}</b> instantly.`,
+    liq_alta: 'high', liq_media: 'medium', liq_baixa: 'low', liq_nenhuma: 'none',
+    s_loading: 'Loading item tables and market snapshot…',
+    s_reading: f => `Reading <b>${f}</b>…`,
+    s_decrypting: 'Decrypting the save in your browser…',
+    s_crossing: 'Matching your stash with the Steam Market…',
+    s_error: msg => `Failed to read the save: ${msg}. Make sure it is the TBH <code>SaveFile_Live.es3</code>.`,
+  },
+};
+let LANG = localStorage.getItem('lang') || ((navigator.language || 'pt').toLowerCase().startsWith('pt') ? 'pt' : 'en');
+const t = (k, ...a) => { const v = (I18N[LANG] && I18N[LANG][k] != null) ? I18N[LANG][k] : I18N.pt[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
+function applyI18n() {
+  document.documentElement.lang = LANG === 'pt' ? 'pt-BR' : 'en';
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-html]').forEach(el => el.innerHTML = t(el.dataset.i18nHtml));
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
+  document.querySelectorAll('#langToggle button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
+  if (lastStash) render();
+}
 
 const PASSWORD = 'emuMqG3bLYJ938ZDCfieWJ'; // chave ES3 do jogo (pública, embutida nos assets do TBH)
 const $ = s => document.querySelector(s);
@@ -154,11 +252,11 @@ const drop = $('#drop'), fileInput = $('#file'), statusEl = $('#status');
 const SYMBOLS = { usd: '$', brl: 'R$' };
 const LOCALES = { usd: 'en-US', brl: 'pt-BR' };
 let CUR = 'brl'; // moeda selecionada
-// formata centavos na moeda cur. cents null/undefined → '—' (preço ainda não disponível)
 const money = (cents, cur = CUR) => cents == null ? '—'
   : `${SYMBOLS[cur]} ${(cents / 100).toLocaleString(LOCALES[cur], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+const moneyBrl = c => money(c, 'brl');
 
-let tables = null; // { table, names, market } carregados sob demanda
+let tables = null;
 let lastStash = null;
 
 function setStatus(html, isErr) { statusEl.className = 'note' + (isErr ? ' err' : ''); statusEl.innerHTML = html; statusEl.classList.remove('hidden'); }
@@ -179,7 +277,7 @@ async function fetchSnapshot() {
 }
 async function loadTables() {
   if (tables) return tables;
-  setStatus('Carregando tabelas de itens e snapshot do mercado…');
+  setStatus(t('s_loading'));
   const [table, names, market] = await Promise.all([
     fetch('./data/tbh-itemtable.json').then(r => r.json()),
     fetch('./data/tbh-itemnames.json').then(r => r.json()),
@@ -191,20 +289,20 @@ async function loadTables() {
 
 async function handleFile(file) {
   try {
-    setStatus(`Lendo <b>${file.name}</b>…`);
+    setStatus(t('s_reading', file.name));
     const bytes = new Uint8Array(await file.arrayBuffer());
-    const t = await loadTables();
-    setStatus('Decifrando o save no navegador…');
+    const tb = await loadTables();
+    setStatus(t('s_decrypting'));
     const plain = await decryptES3(bytes, PASSWORD);
     const utf8 = new TextDecoder().decode(plain);
-    setStatus('Cruzando o baú com o Mercado Steam…');
-    const stash = readStash(utf8, t.table, t.names, t.market);
+    setStatus(t('s_crossing'));
+    const stash = readStash(utf8, tb.table, tb.names, tb.market);
     lastStash = stash;
     render();
     statusEl.classList.add('hidden');
   } catch (e) {
     console.error(e);
-    setStatus(`Falha ao ler o save: ${e.message}. Confira se é o <code>SaveFile_Live.es3</code> do TBH.`, true);
+    setStatus(t('s_error', e.message), true);
   }
 }
 
@@ -212,54 +310,51 @@ let sortKey = 'subtotal', sortDir = -1;
 function render() {
   const s = lastStash; if (!s) return;
   $('#result').classList.remove('hidden');
-  const date = tables?.fetchedAt ? new Date(tables.fetchedAt).toLocaleString('pt-BR') : '—';
-  // alerta se a moeda escolhida ainda tem preços faltando (BRL preenche em background no protótipo)
-  const missing = s.types - (s.pricedTypes[CUR] || 0) - s.unpricedItems; // tipos com mercado mas sem preço nesta moeda
+  const date = tables?.fetchedAt ? new Date(tables.fetchedAt).toLocaleString(LANG === 'pt' ? 'pt-BR' : 'en-US') : '—';
+  const missing = s.types - (s.pricedTypes[CUR] || 0) - s.unpricedItems;
   const pendNote = (CUR === 'brl' && missing > 0)
-    ? `<div class="stat" style="border-color:#5a4a1f"><div class="k">⚠ BRL pendente</div><div class="v" style="font-size:16px">${missing} itens<br><span class="pend">preço em R$ ainda carregando</span></div></div>` : '';
+    ? `<div class="stat" style="border-color:#5a4a1f"><div class="k">${t('st_brlpend')}</div><div class="v" style="font-size:16px">${t('st_brlpend_n', missing)}<br><span class="pend">${t('st_brlload')}</span></div></div>` : '';
   $('#summary').innerHTML = `
-    <div class="stat"><div class="k">Valor total — anúncio (${SYMBOLS[CUR]})</div><div class="v big">${money(s.total[CUR])}</div></div>
-    <div class="stat" style="border-color:#2f5a30"><div class="k">💸 Venda imediata (R$)</div><div class="v big" style="color:var(--green)">${moneyBrl(s.instantTotalBrl)}</div></div>
-    <div class="stat"><div class="k">Equipamentos</div><div class="v">${money(s.gear[CUR])}</div></div>
-    <div class="stat"><div class="k">Materiais</div><div class="v">${money(s.mat[CUR])}</div></div>
-    <div class="stat"><div class="k">Itens no baú</div><div class="v">${s.totalItems}</div></div>
-    <div class="stat"><div class="k">Sem anúncio · sem mercado</div><div class="v" style="font-size:18px">${s.unlistedItems} · ${s.unpricedItems}</div></div>
+    <div class="stat"><div class="k">${t('st_total')} (${SYMBOLS[CUR]})</div><div class="v big">${money(s.total[CUR])}</div></div>
+    <div class="stat" style="border-color:#2f5a30"><div class="k">${t('st_instant')}</div><div class="v big" style="color:var(--green)">${moneyBrl(s.instantTotalBrl)}</div></div>
+    <div class="stat"><div class="k">${t('st_gear')}</div><div class="v">${money(s.gear[CUR])}</div></div>
+    <div class="stat"><div class="k">${t('st_materials')}</div><div class="v">${money(s.mat[CUR])}</div></div>
+    <div class="stat"><div class="k">${t('st_items')}</div><div class="v">${s.totalItems}</div></div>
+    <div class="stat"><div class="k">${t('st_nlnm')}</div><div class="v" style="font-size:18px">${s.unlistedItems} · ${s.unpricedItems}</div></div>
     ${pendNote}`;
+  const dEl = $('#disclaimer'); dEl.innerHTML = t('disclaimer', date); dEl.classList.remove('hidden');
   renderRows();
   renderTop4();
-  $('#scanStatus').textContent = tables?.fetchedAt ? `mercado atualizado ${date}` : '';
-  $('#extra').innerHTML = `<p class="muted" style="margin-top:18px">Anúncio = preço de listagem (você espera vender). Venda imediata = maior ordem de compra (vende na hora). ${s.duplicateSlotRefsIgnored} refs duplicadas ignoradas. ${s.ownedOtherItems} itens sem nome conhecido.</p>`
-    + (s.unknownSummary.length ? `<details><summary class="muted">Itens não reconhecidos (${s.unknownSummary.length})</summary><ul class="muted">${s.unknownSummary.map(u => `<li>${u.label} ×${u.qty}</li>`).join('')}</ul></details>` : '');
+  $('#extra').innerHTML = `<p class="muted" style="margin-top:18px">${t('explain')} ${t('diag', s.duplicateSlotRefsIgnored, s.ownedOtherItems)}</p>`
+    + (s.unknownSummary.length ? `<details><summary class="muted">${t('unrecognized', s.unknownSummary.length)}</summary><ul class="muted">${s.unknownSummary.map(u => `<li>${u.label} ×${u.qty}</li>`).join('')}</ul></details>` : '');
 }
 
-const moneyBrl = c => money(c, 'brl');
-const priceOf = it => it[CUR + 'Cents']; // usdCents | brlCents (pode ser null)
+const priceOf = it => it[CUR + 'Cents'];
 function renderRows() {
   if (!lastStash) return;
   const q = $('#q').value.trim().toLowerCase();
   let rows = lastStash.items.filter(it => !q || it.name.toLowerCase().includes(q));
   rows = rows.map(it => {
     const p = priceOf(it);
-    return { ...it, listing: p, subtotal: p == null ? null : p * it.qty,
-      instant: it.buyCount ? it.buyCents : null }; // venda imediata só conta com ordem de compra ativa
+    return { ...it, listing: p, subtotal: p == null ? null : p * it.qty, instant: it.buyCount ? it.buyCents : null };
   });
   rows.sort((a, b) => {
     const av = a[sortKey], bv = b[sortKey];
     const cmp = typeof av === 'string' ? String(av).localeCompare(String(bv)) : ((av ?? -1) - (bv ?? -1));
     return cmp * sortDir;
   });
-  $('#count').textContent = `${rows.length} tipos`;
+  $('#count').textContent = t('count_types', rows.length);
   $('#tbl tbody').innerHTML = rows.map(it => {
     const noListing = it.hasMarketListing === false;
-    const pend = !noListing && it.listing == null; // tem mercado mas preço nesta moeda ainda não veio
+    const pend = !noListing && it.listing == null;
     const hasBuy = it.buyCount && it.buyCents != null;
-    const instantCell = hasBuy ? moneyBrl(it.buyCents) : '<span class="muted">sem ordem</span>';
-    const liqCell = it.liquidez ? `<span class="liq ${it.liquidez}">${it.liquidez}${it.buyCount ? ` (${it.buyCount})` : ''}</span>` : '';
+    const instantCell = hasBuy ? moneyBrl(it.buyCents) : `<span class="muted">${t('no_order')}</span>`;
+    const liqCell = it.liquidez ? `<span class="liq ${it.liquidez}">${t('liq_' + it.liquidez)}${it.buyCount ? ` (${it.buyCount})` : ''}</span>` : '';
     return `
     <tr>
       <td>${it.icon ? `<img class="ico" src="${it.icon}" loading="lazy">` : ''}</td>
-      <td><a href="${it.url}" target="_blank">${it.name}</a>${noListing ? ' <span class="tag">sem anúncio</span>' : pend ? ' <span class="pend">R$ pendente</span>' : ''}</td>
-      <td><span class="tag ${it.kind}">${it.kind || '?'}</span></td>
+      <td><a href="${it.url}" target="_blank">${it.name}</a>${noListing ? ` <span class="tag">${t('tag_nolisting')}</span>` : pend ? ` <span class="pend">${t('price_pending')}</span>` : ''}</td>
+      <td><span class="tag ${it.kind || ''}">${t('kind_' + (it.kind || 'other'))}</span></td>
       <td class="num">${it.qty}</td>
       <td class="num">${noListing ? '—' : money(it.listing)}</td>
       <td class="num">${instantCell}</td>
@@ -268,10 +363,8 @@ function renderRows() {
     </tr>`; }).join('');
 }
 
-// ── Top 4 pra lançar: os 4 itens/unidades mais lucrativos por VENDA IMEDIATA (ordem de compra) ──
 function renderTop4() {
   if (!lastStash) return;
-  // expande por quantidade em "unidades" vendáveis com ordem de compra ativa
   const units = [];
   for (const it of lastStash.items) {
     if (!it.buyCents || !it.buyCount) continue;
@@ -281,13 +374,12 @@ function renderTop4() {
   units.sort((a, b) => b.cents - a.cents);
   const top = units.slice(0, 4);
   const total = top.reduce((a, u) => a + u.cents, 0);
-  // agrupa unidades repetidas do mesmo item pra exibir "×N"
   const grouped = [];
   for (const u of top) { const g = grouped.find(x => x.hash === u.hash); if (g) g.n++; else grouped.push({ ...u, n: 1 }); }
   $('#top4').classList.remove('hidden');
   $('#top4').innerHTML = `
-    <h2>🚀 Top 4 pra lançar agora</h2>
-    <div class="hint">Os 4 itens mais lucrativos por <b>venda imediata</b> (bate na maior ordem de compra e vende na hora). Use na sua janela de 4 itens / 8h.</div>
+    <h2>${t('top4_title')}</h2>
+    <div class="hint">${t('top4_hint')}</div>
     <div class="picks">
       ${grouped.map((u, i) => `
         <div class="pick">
@@ -295,12 +387,12 @@ function renderTop4() {
           ${u.icon ? `<img src="${u.icon}">` : ''}
           <div>
             <div class="nm">${u.name}</div>
-            <div class="val">${moneyBrl(u.cents)}${u.n > 1 ? ` <span class="muted" style="font-size:12px">un.</span>` : ''}</div>
-            <div class="liq ${u.liq}">liquidez ${u.liq} (${u.buyCount} ordens)</div>
+            <div class="val">${moneyBrl(u.cents)}${u.n > 1 ? ` <span class="muted" style="font-size:12px">${t('top4_unit')}</span>` : ''}</div>
+            <div class="liq ${u.liq}">${t('top4_liq', t('liq_' + u.liq), u.buyCount)}</div>
           </div>
         </div>`).join('')}
     </div>
-    <div class="tot">Lançando esses 4 agora você recebe ≈ <b>${moneyBrl(total)}</b> na hora.</div>`;
+    <div class="tot">${t('top4_total', moneyBrl(total))}</div>`;
 }
 
 // eventos
@@ -319,6 +411,10 @@ $('#curToggle').addEventListener('click', e => {
   $('#curToggle').querySelectorAll('button').forEach(b => b.classList.toggle('on', b === btn));
   render();
 });
+$('#langToggle').addEventListener('click', e => {
+  const b = e.target.closest('button[data-lang]'); if (!b) return;
+  LANG = b.dataset.lang; localStorage.setItem('lang', LANG); applyI18n();
+});
 
 // Pix (BR Code estático — chave fixa do edelrich). QR em ./pix-qr.svg.
 const PIX_PAYLOAD = '00020101021126580014br.gov.bcb.pix0136a729db7b-f840-4293-95fb-1020278f4ee85204000053039865802BR5908EDELRICH6006BRASIL62070503***6304CBEA';
@@ -331,9 +427,11 @@ $('#pixClose').addEventListener('click', closePix);
 pixModal.addEventListener('click', e => { if (e.target === pixModal) closePix(); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape') closePix(); });
 $('#pixCopyBtn').addEventListener('click', async () => {
-  try { await navigator.clipboard.writeText(PIX_PAYLOAD); $('#pixCopyBtn').textContent = 'Copiado ✓'; setTimeout(() => $('#pixCopyBtn').textContent = 'Copiar código Pix', 1500); }
-  catch { prompt('Copie o código Pix:', PIX_PAYLOAD); }
+  try { await navigator.clipboard.writeText(PIX_PAYLOAD); $('#pixCopyBtn').textContent = t('pix_copied'); setTimeout(() => $('#pixCopyBtn').textContent = t('pix_copy'), 1500); }
+  catch { prompt('Pix:', PIX_PAYLOAD); }
 });
+
+applyI18n(); // aplica o idioma inicial (detectado/salvo) nos textos estáticos
 </script>
 </body>
 </html>
