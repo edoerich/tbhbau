@@ -155,16 +155,27 @@ let lastStash = null;
 
 function setStatus(html, isErr) { statusEl.className = 'note' + (isErr ? ' err' : ''); statusEl.innerHTML = html; statusEl.classList.remove('hidden'); }
 
-// URL do snapshot global (preços + ordens de compra). Local: ./data/snapshot.json.
-// Em produção, troque pela URL servida pelo worker na VM (ex.: https://api.seusite.com/snapshot.json).
-const SNAPSHOT_URL = './data/snapshot.json';
+// Snapshot global (preços + ordens de compra), servido pelo worker na VM via Cloudflare.
+// Se a VM estiver fora, cai no snapshot empacotado (defasado, mas o site não quebra).
+const SNAPSHOT_URL = 'https://api.tbhbau.com.br/data/snapshot.json';
+const SNAPSHOT_FALLBACK = './data/snapshot.json';
+async function fetchSnapshot() {
+  try {
+    const r = await fetch(SNAPSHOT_URL, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    return await r.json();
+  } catch (e) {
+    console.warn('snapshot ao vivo indisponível, usando bundle:', e.message);
+    return fetch(SNAPSHOT_FALLBACK).then(r => r.json());
+  }
+}
 async function loadTables() {
   if (tables) return tables;
   setStatus('Carregando tabelas de itens e snapshot do mercado…');
   const [table, names, market] = await Promise.all([
     fetch('./data/tbh-itemtable.json').then(r => r.json()),
     fetch('./data/tbh-itemnames.json').then(r => r.json()),
-    fetch(SNAPSHOT_URL).then(r => r.json()),
+    fetchSnapshot(),
   ]);
   tables = { table, names, market: market.items, fetchedAt: market.updatedAt || market.fetchedAt };
   return tables;
