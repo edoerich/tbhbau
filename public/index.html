@@ -58,8 +58,8 @@
   .top4 .tot b { color:var(--green); }
   .liq { font-size:12px; }
   .liq.alta { color:var(--green); } .liq.media { color:var(--warn); } .liq.baixa { color:#f49a66; } .liq.nenhuma { color:var(--mut); }
-  .adslot { max-width:1000px; margin:24px auto 0; min-height:90px; display:flex; align-items:center; justify-content:center;
-    border:1px dashed var(--line); border-radius:10px; background:#13161c; font-size:12px; }
+  .adslot { max-width:1000px; margin:24px auto 0; min-height:90px; overflow:hidden; }
+  .adslot .lbl { color:var(--mut); font-size:10px; text-transform:uppercase; letter-spacing:.08em; text-align:center; margin-bottom:4px; }
   .modal { position:fixed; inset:0; background:rgba(0,0,0,.7); display:flex; align-items:center; justify-content:center; z-index:50; padding:16px; }
   .modal.hidden { display:none; } /* vence o .modal display:flex quando fechado */
   .modal-box { background:var(--card); border:1px solid var(--line); border-radius:14px; padding:22px; max-width:360px; width:100%; text-align:center; position:relative; }
@@ -113,9 +113,16 @@
     <div id="extra"></div>
   </section>
 
-  <!-- Slot de anúncio discreto (único). Cole o bloco do AdSense dentro de #adslot quando aprovado. -->
+  <!-- Slot de anúncio discreto (único). O adsbygoogle.js já está no <head>. -->
   <aside id="adslot" class="adslot" aria-label="anúncio">
-    <span class="muted">espaço reservado para anúncio</span>
+    <div class="lbl">Publicidade</div>
+    <ins class="adsbygoogle"
+         style="display:block"
+         data-ad-client="ca-pub-1603507684488543"
+         data-ad-slot="6443249296"
+         data-ad-format="auto"
+         data-full-width-responsive="true"></ins>
+    <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
   </aside>
 </main>
 
