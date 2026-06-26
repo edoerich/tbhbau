@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUB = path.join(ROOT, 'public'); // arquivos estáticos do site (deploy do Cloudflare Pages)
 const PORT = Number(process.env.PORT || 5270);
+const HOST = process.env.HOST || '127.0.0.1'; // local: só localhost; na VM use HOST=0.0.0.0
 const APPID = 3678970;
 const UA = 'giba-steam-market/1.0 (uso pessoal read-only)';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.json': 'application/json', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml' };
@@ -82,4 +83,4 @@ http.createServer(async (req, res) => {
     res.writeHead(200, { 'Content-Type': (TYPES[path.extname(file)] || 'application/octet-stream') + '; charset=utf-8' });
     res.end(buf);
   });
-}).listen(PORT, '127.0.0.1', () => console.log(`Protótipo (com orderbook) em http://localhost:${PORT}`));
+}).listen(PORT, HOST, () => console.log(`tbhbau server em ${HOST}:${PORT}`));
