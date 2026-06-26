@@ -5,9 +5,16 @@
   "type": "module",
   "scripts": {
     "start": "node server.mjs",
-    "worker": "node worker.mjs"
+    "worker": "node worker.mjs",
+    "deploy": "wrangler deploy",
+    "preview": "wrangler dev"
   },
   "author": "edelrich",
   "license": "MIT",
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "wrangler": "^4.105.0"
+  }
 }
