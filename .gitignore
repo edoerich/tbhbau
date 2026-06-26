@@ -5,3 +5,6 @@ data/*.tmp
 data/app.log
 .DS_Store
 .env
+
+# snapshot vivo gerado pelo worker na VM (o versionado é o .seed.json)
+public/data/snapshot.json

@@ -264,7 +264,7 @@ function setStatus(html, isErr) { statusEl.className = 'note' + (isErr ? ' err' 
 // Snapshot global (preços + ordens de compra), servido pelo worker na VM via Cloudflare.
 // Se a VM estiver fora, cai no snapshot empacotado (defasado, mas o site não quebra).
 const SNAPSHOT_URL = 'https://api.tbhbau.com.br/data/snapshot.json';
-const SNAPSHOT_FALLBACK = './data/snapshot.json';
+const SNAPSHOT_FALLBACK = './data/snapshot.seed.json';
 async function fetchSnapshot() {
   try {
     const r = await fetch(SNAPSHOT_URL, { cache: 'no-store' });
