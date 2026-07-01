@@ -31,27 +31,6 @@ function parseCompact(arr, limit = 40) {
   for (let i = 0; i + 1 < (arr || []).length && out.length < limit; i += 2) out.push([arr[i], arr[i + 1]]);
   return out;
 }
-const brlToCents = s => { const m = String(s || '').match(/[\d.,]+/); if (!m) return null; const v = parseFloat(m[0].replace(/\./g, '').replace(',', '.')); return Number.isFinite(v) ? Math.round(v * 100) : null; };
-
-// Mediana + volume 24h (priceoverview, BRL). Cache curto.
-const POV_TTL_MS = 5 * 60 * 1000;
-const povCache = new Map();
-async function fetchPriceOverview(hash) {
-  const hit = povCache.get(hash);
-  if (hit && (Date.now() - hit.at) < POV_TTL_MS) return hit.data;
-  const url = `https://steamcommunity.com/market/priceoverview/?appid=${APPID}&currency=7&market_hash_name=${encodeURIComponent(hash)}`;
-  const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept': 'application/json' } });
-  if (res.status === 429) throw Object.assign(new Error('rate-limited'), { code: 429 });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  const j = await res.json();
-  const data = {
-    lowestCents: j.success ? brlToCents(j.lowest_price) : null,
-    medianCents: j.success ? brlToCents(j.median_price) : null,
-    volume: j.success ? (j.volume || null) : null,
-  };
-  povCache.set(hash, { at: Date.now(), data });
-  return data;
-}
 
 // Maior ordem de COMPRA (amtMaxBuyOrder) = o que você recebe vendendo na hora.
 async function fetchOrderbook(hash) {
@@ -103,14 +82,12 @@ http.createServer(async (req, res) => {
     catch (e) { return sendJson(res, e.code === 429 ? 429 : 500, { error: e.message, hash }); }
   }
 
-  // ── API: detalhe do item (order book completo + indicadores) — usado no painel de detalhe ──
+  // ── API: detalhe do item (order book completo ao vivo) — mediana/volume vêm do snapshot ──
   if (u.pathname === '/api/item') {
     const hash = u.searchParams.get('hash');
     if (!hash) return sendJson(res, 400, { error: 'hash obrigatório' });
-    try {
-      const [ob, pov] = await Promise.all([fetchOrderbook(hash), fetchPriceOverview(hash).catch(() => ({}))]);
-      return sendJson(res, 200, { ...ob, ...pov });
-    } catch (e) { return sendJson(res, e.code === 429 ? 429 : 500, { error: e.message, hash }); }
+    try { return sendJson(res, 200, await fetchOrderbook(hash)); }
+    catch (e) { return sendJson(res, e.code === 429 ? 429 : 500, { error: e.message, hash }); }
   }
 
   // ── estáticos (servidos de public/) ──

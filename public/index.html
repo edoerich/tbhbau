@@ -73,6 +73,25 @@
   .pix-qr { width:240px; height:240px; background:#fff; border-radius:10px; padding:8px; }
   .pix-copy { margin:12px 0; background:#0a0c10; border:1px solid var(--line); border-radius:8px; padding:8px; word-break:break-all; font-size:11px; color:var(--mut); max-height:64px; overflow:auto; }
   .btn { background:var(--acc); color:#06121c; border:0; border-radius:8px; padding:9px 14px; font:inherit; font-weight:600; cursor:pointer; }
+  .modal-wide { max-width:620px; text-align:left; }
+  tr.clickable { cursor:pointer; }
+  .idet-head { display:flex; gap:12px; align-items:center; padding-right:24px; }
+  .idet-icon { width:44px; height:44px; border-radius:6px; background:#0a0c10; }
+  .idet-name { font-size:18px; font-weight:600; }
+  .idet-ind { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:16px; }
+  .istat { background:#10141a; border:1px solid var(--line); border-radius:8px; padding:8px 10px; }
+  .istat .ik { color:var(--mut); font-size:10px; text-transform:uppercase; letter-spacing:.04em; }
+  .istat .iv { font-size:15px; font-weight:600; margin-top:2px; }
+  .obwrap { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  .obhead { display:flex; justify-content:space-between; font-size:12px; font-weight:600; margin-bottom:6px; padding:0 4px; }
+  .obhead .h-buy { color:var(--green); } .obhead .h-sell { color:#f4707a; }
+  .obrow { position:relative; display:flex; justify-content:space-between; font-size:12px; padding:3px 6px; font-variant-numeric:tabular-nums; }
+  .obrow .obbar { position:absolute; top:0; bottom:0; right:0; border-radius:3px; z-index:0; }
+  .obrow.buy .obbar { background:rgba(126,217,87,.15); } .obrow.sell .obbar { background:rgba(244,112,122,.15); }
+  .obrow .obp, .obrow .obq { position:relative; z-index:1; }
+  .obrow.buy .obp { color:var(--green); } .obrow.sell .obp { color:#f4707a; }
+  .obrow .obq { color:var(--mut); }
+  .idet-chart { text-align:center; padding:18px; margin-top:14px; border:1px dashed var(--line); border-radius:8px; font-size:13px; }
   footer { max-width:1000px; margin:0 auto; padding:20px; color:var(--mut); font-size:13px; }
   .note { background:#16202b; border:1px solid #244; border-radius:8px; padding:10px 12px; font-size:13px; color:#bcd; margin-top:14px; }
   .content { max-width:1000px; margin:36px auto 0; padding:0 20px; }
@@ -188,6 +207,22 @@
     <button id="pixCopyBtn" class="btn" data-i18n="pix_copy">Copiar código Pix</button>
   </div>
 </div>
+<div id="itemModal" class="modal hidden">
+  <div class="modal-box modal-wide">
+    <button id="itemClose" class="modal-x" aria-label="fechar">×</button>
+    <div class="idet-head">
+      <img id="idetIcon" class="idet-icon" alt="">
+      <div style="flex:1">
+        <div id="idetName" class="idet-name"></div>
+        <div id="idetType" class="muted" style="font-size:13px"></div>
+      </div>
+      <a id="idetLink" href="#" target="_blank" rel="noopener" data-i18n="idet_steam" style="font-size:13px">ver na Steam ↗</a>
+    </div>
+    <div class="muted" id="idetHint" data-i18n="idet_hint" style="font-size:12px;margin:2px 0 12px"></div>
+    <div id="idetIndicators" class="idet-ind"></div>
+    <div id="idetBody"></div>
+  </div>
+</div>
 <footer>
   <div data-i18n-html="footer_1">Avaliador de baú do <b>TBH: Task Bar Hero</b> · seu save é lido só no navegador, nada é enviado.</div>
   <div style="margin-top:6px">
@@ -255,6 +290,10 @@ const I18N = {
     faq_a4: 'Porque o anúncio é o preço de quem está <i>vendendo</i> (e você entraria na fila), enquanto a venda imediata é a maior ordem de <i>compra</i> — o valor que você recebe vendendo na hora.',
     faq_q5: 'Os valores já descontam a taxa da Steam?',
     faq_a5: 'Não. Os preços mostrados são os do Mercado (como aparecem na Steam). A Steam cobra uma taxa sobre as vendas, então o valor líquido que você recebe é um pouco menor.',
+    idet_loading: 'carregando order book…', idet_error: 'não foi possível carregar o order book agora. Tente de novo em instantes.',
+    idet_steam: 'ver na Steam ↗', idet_hint: 'Order book ao vivo da Steam · valores em R$',
+    idet_lowest: 'Menor venda', idet_median: 'Mediana', idet_vol: 'Volume 24h', idet_bestbid: 'Melhor compra', idet_bestask: 'Melhor venda', idet_spread: 'Spread',
+    idet_buyorders: 'Ordens de compra', idet_sellorders: 'Ordens de venda', idet_chart_soon: '📈 Gráfico de histórico em breve',
     s_loading: 'Carregando tabelas de itens e snapshot do mercado…',
     s_reading: f => `Lendo <b>${f}</b>…`,
     s_decrypting: 'Decifrando o save no navegador…',
@@ -313,6 +352,10 @@ const I18N = {
     faq_a4: 'Because the listing is the price of someone <i>selling</i> (you would wait in line), while instant sell is the highest <i>buy</i> order — what you get by selling right now.',
     faq_q5: 'Do the values already deduct the Steam fee?',
     faq_a5: 'No. The prices shown are Market prices (as they appear on Steam). Steam charges a fee on sales, so the net amount you receive is a bit lower.',
+    idet_loading: 'loading order book…', idet_error: 'could not load the order book right now. Try again in a moment.',
+    idet_steam: 'view on Steam ↗', idet_hint: 'Live order book from Steam · values in R$',
+    idet_lowest: 'Lowest ask', idet_median: 'Median', idet_vol: '24h volume', idet_bestbid: 'Best bid', idet_bestask: 'Best ask', idet_spread: 'Spread',
+    idet_buyorders: 'Buy orders', idet_sellorders: 'Sell orders', idet_chart_soon: '📈 Price history chart coming soon',
     s_loading: 'Loading item tables and market snapshot…',
     s_reading: f => `Reading <b>${f}</b>…`,
     s_decrypting: 'Decrypting the save in your browser…',
@@ -436,9 +479,9 @@ function renderRows() {
     const instantCell = hasBuy ? moneyBrl(it.buyCents) : `<span class="muted">${t('no_order')}</span>`;
     const liqCell = it.liquidez ? `<span class="liq ${it.liquidez}">${t('liq_' + it.liquidez)}${it.buyCount ? ` (${it.buyCount})` : ''}</span>` : '';
     return `
-    <tr>
+    <tr class="clickable" data-hash="${encodeURIComponent(it.hash)}">
       <td>${it.icon ? `<img class="ico" src="${it.icon}" loading="lazy">` : ''}</td>
-      <td><a href="${it.url}" target="_blank">${it.name}</a>${noListing ? ` <span class="tag">${t('tag_nolisting')}</span>` : pend ? ` <span class="pend">${t('price_pending')}</span>` : ''}</td>
+      <td>${it.name}${noListing ? ` <span class="tag">${t('tag_nolisting')}</span>` : pend ? ` <span class="pend">${t('price_pending')}</span>` : ''}</td>
       <td><span class="tag ${it.kind || ''}">${t('kind_' + (it.kind || 'other'))}</span></td>
       <td class="num">${it.qty}</td>
       <td class="num">${noListing ? '—' : money(it.listing)}</td>
@@ -522,6 +565,59 @@ $('#pixCopyBtn').addEventListener('click', async () => {
   try { await navigator.clipboard.writeText(PIX_PAYLOAD); $('#pixCopyBtn').textContent = t('pix_copied'); setTimeout(() => $('#pixCopyBtn').textContent = t('pix_copy'), 1500); }
   catch { prompt('Pix:', PIX_PAYLOAD); }
 });
+
+// ── Detalhe do item: order book ao vivo + indicadores ────────────────────────
+const API_BASE = new URL(SNAPSHOT_URL).origin; // https://api.tbhbau.com.br
+const itemModal = $('#itemModal');
+const closeItem = () => itemModal.classList.add('hidden');
+$('#itemClose').addEventListener('click', closeItem);
+itemModal.addEventListener('click', e => { if (e.target === itemModal) closeItem(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeItem(); });
+$('#tbl tbody').addEventListener('click', e => {
+  const tr = e.target.closest('tr[data-hash]'); if (!tr || !lastStash) return;
+  const it = lastStash.items.find(x => x.hash === decodeURIComponent(tr.dataset.hash));
+  if (it) openItemDetail(it);
+});
+
+const fmtQty = n => n >= 1000 ? (n / 1000).toFixed(n >= 10000 ? 0 : 1) + 'k' : String(n);
+function obColumn(orders, cls, label) {
+  const rows = (orders || []).slice(0, 12);
+  const maxQ = Math.max(1, ...rows.map(o => o[1]));
+  const totalQ = (orders || []).reduce((a, o) => a + o[1], 0);
+  const body = rows.length ? rows.map(o =>
+    `<div class="obrow ${cls}"><span class="obbar" style="width:${Math.round(o[1] / maxQ * 100)}%"></span><span class="obp">${moneyBrl(o[0])}</span><span class="obq">${fmtQty(o[1])}</span></div>`).join('')
+    : '<div class="muted" style="padding:6px;font-size:12px">—</div>';
+  return `<div><div class="obhead"><span class="h-${cls}">${label}</span><span class="muted">${fmtQty(totalQ)}</span></div>${body}</div>`;
+}
+function renderItemDetail(it, ob) {
+  const bid = ob.maxBuyCents, ask = ob.minSellCents;
+  const spread = (bid != null && ask != null) ? ask - bid : null;
+  const spreadPct = (spread != null && (ask + bid) > 0) ? spread / ((ask + bid) / 2) * 100 : null;
+  const ind = [
+    [t('idet_lowest'), moneyBrl(ask)], [t('idet_median'), moneyBrl(it.medianCents)], [t('idet_vol'), it.volume || '—'],
+    [t('idet_bestbid'), moneyBrl(bid)], [t('idet_bestask'), moneyBrl(ask)],
+    [t('idet_spread'), spread != null ? `${moneyBrl(spread)} (${spreadPct.toFixed(1)}%)` : '—'],
+  ];
+  $('#idetIndicators').innerHTML = ind.map(([k, v]) => `<div class="istat"><div class="ik">${k}</div><div class="iv">${v}</div></div>`).join('');
+  $('#idetBody').innerHTML = `<div class="obwrap">${obColumn(ob.buyOrders, 'buy', t('idet_buyorders'))}${obColumn(ob.sellOrders, 'sell', t('idet_sellorders'))}</div>`
+    + `<div class="idet-chart muted">${t('idet_chart_soon')}</div>`;
+}
+async function openItemDetail(it) {
+  $('#idetName').textContent = it.name;
+  $('#idetType').textContent = it.type || '';
+  const icon = $('#idetIcon'); if (it.icon) { icon.src = it.icon; icon.style.display = ''; } else icon.style.display = 'none';
+  $('#idetLink').href = it.url;
+  $('#idetIndicators').innerHTML = '';
+  $('#idetBody').innerHTML = `<div class="muted" style="padding:24px;text-align:center">${t('idet_loading')}</div>`;
+  itemModal.classList.remove('hidden');
+  try {
+    const r = await fetch(`${API_BASE}/api/item?hash=${encodeURIComponent(it.hash)}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    renderItemDetail(it, await r.json());
+  } catch (e) {
+    $('#idetBody').innerHTML = `<div class="err" style="padding:24px;text-align:center">${t('idet_error')}</div>`;
+  }
+}
 
 applyI18n(); // aplica o idioma inicial (detectado/salvo) nos textos estáticos
 </script>

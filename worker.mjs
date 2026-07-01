@@ -61,7 +61,8 @@ async function fetchOrderbook(hash) {
 }
 async function fetchBrlListing(hash) {
   const j = await steamJson(`https://steamcommunity.com/market/priceoverview/?appid=${APPID}&currency=7&market_hash_name=${encodeURIComponent(hash)}`);
-  return (j && j.success) ? (brlToCents(j.lowest_price) ?? brlToCents(j.median_price)) : null;
+  if (!j || !j.success) return null;
+  return { cents: brlToCents(j.lowest_price) ?? brlToCents(j.median_price), median: brlToCents(j.median_price), volume: j.volume || null };
 }
 
 function loadSnap() { try { return JSON.parse(fs.readFileSync(SNAP, 'utf8')); } catch { return null; } }
@@ -108,7 +109,7 @@ async function main() {
       catch (e) { obErr++; if (e.code === 429) { log('429 orderbook — pausa 30s'); await sleep(30000); } }
       await sleep(OB_DELAY);
       // BRL anúncio: 1 a cada 2 itens (priceoverview é o mais limitado)
-      if (i % 2 === 0) { try { const b = await fetchBrlListing(it.hash); if (b != null) it.brlCents = b; } catch (e) { if (e.code === 429) await sleep(20000); } await sleep(BRL_DELAY); }
+      if (i % 2 === 0) { try { const b = await fetchBrlListing(it.hash); if (b) { if (b.cents != null) it.brlCents = b.cents; it.medianCents = b.median; it.volume = b.volume; } } catch (e) { if (e.code === 429) await sleep(20000); } await sleep(BRL_DELAY); }
       if (++i % 20 === 0) { saveSnap(snap); log(`ciclo ${cycle}: ${i}/${all.length} (orderbook err ${obErr})`); }
     }
     saveSnap(snap);

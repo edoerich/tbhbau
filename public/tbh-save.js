@@ -138,6 +138,7 @@ export function readStash(saveBytesUtf8, tableArr, names, marketItems) {
       if (!agg[k]) agg[k] = {
         name: m.name, hash: m.hash, usdCents: usd, brlCents: brl,
         buyCents: m.buyCents ?? null, buyCount: m.buyCount ?? 0, liquidez: m.liquidez ?? null, minSellCents: m.minSellCents ?? null,
+        medianCents: m.medianCents ?? null, volume: m.volume ?? null,
         type: m.type, icon: m.icon, color: m.color,
         url: m.url || `https://steamcommunity.com/market/listings/${TBH_APPID}/${encodeURIComponent(m.hash)}`,
         qty: 0, kind, hasMarketListing: m.hasMarketListing !== false,
