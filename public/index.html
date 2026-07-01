@@ -72,6 +72,14 @@
   .btn { background:var(--acc); color:#06121c; border:0; border-radius:8px; padding:9px 14px; font:inherit; font-weight:600; cursor:pointer; }
   footer { max-width:1000px; margin:0 auto; padding:20px; color:var(--mut); font-size:13px; }
   .note { background:#16202b; border:1px solid #244; border-radius:8px; padding:10px 12px; font-size:13px; color:#bcd; margin-top:14px; }
+  .content { max-width:1000px; margin:36px auto 0; padding:0 20px; }
+  .content article { margin:24px 0; }
+  .content h2 { font-size:18px; color:var(--acc); margin:0 0 8px; }
+  .content p, .content li { color:#c7cdd8; font-size:14.5px; line-height:1.65; }
+  .content ol { padding-left:20px; margin:8px 0; }
+  .content details { border:1px solid var(--line); border-radius:8px; padding:10px 14px; margin:8px 0; background:var(--card); }
+  .content summary { cursor:pointer; color:var(--txt); font-weight:600; font-size:14px; }
+  .content details p { margin:8px 0 0; }
 </style>
 </head>
 <body>
@@ -120,6 +128,37 @@
       <tbody></tbody>
     </table>
     <div id="extra"></div>
+  </section>
+
+  <section class="content">
+    <article>
+      <h2 data-i18n="c_about_h">O que é o tbhbau?</h2>
+      <p data-i18n-html="c_about_p"></p>
+    </article>
+    <article>
+      <h2 data-i18n="c_how_h">Como funciona</h2>
+      <div data-i18n-html="c_how_p"></div>
+    </article>
+    <article>
+      <h2 data-i18n="c_values_h">Anúncio, venda imediata e liquidez</h2>
+      <div data-i18n-html="c_values_p"></div>
+    </article>
+    <article>
+      <h2 data-i18n="c_strategy_h">A janela de 4 itens a cada 8 horas</h2>
+      <p data-i18n-html="c_strategy_p"></p>
+    </article>
+    <article>
+      <h2 data-i18n="c_privacy_h">Privacidade e segurança</h2>
+      <p data-i18n-html="c_privacy_p"></p>
+    </article>
+    <article>
+      <h2 data-i18n="c_faq_h">Perguntas frequentes</h2>
+      <details><summary data-i18n="faq_q1"></summary><p data-i18n-html="faq_a1"></p></details>
+      <details><summary data-i18n="faq_q2"></summary><p data-i18n-html="faq_a2"></p></details>
+      <details><summary data-i18n="faq_q3"></summary><p data-i18n-html="faq_a3"></p></details>
+      <details><summary data-i18n="faq_q4"></summary><p data-i18n-html="faq_a4"></p></details>
+      <details><summary data-i18n="faq_q5"></summary><p data-i18n-html="faq_a5"></p></details>
+    </article>
   </section>
 
   <!-- Slot de anúncio discreto (único). O adsbygoogle.js já está no <head>. -->
@@ -191,6 +230,27 @@ const I18N = {
     top4_unit: 'un.',
     top4_total: v => `Lançando esses 4 agora você recebe ≈ <b>${v}</b> na hora.`,
     liq_alta: 'alta', liq_media: 'média', liq_baixa: 'baixa', liq_nenhuma: 'nenhuma',
+    c_about_h: 'O que é o tbhbau?',
+    c_about_p: 'O <b>tbhbau</b> é uma ferramenta gratuita que estima o valor do seu baú e inventário no jogo <b>TBH: Task Bar Hero</b> usando os preços reais do <b>Mercado da Steam</b>. Você sobe o arquivo de save do jogo e, em segundos, vê quanto cada item vale — em <b>reais e dólares</b> —, quanto você recebe vendendo na hora e quais itens compensam mais anunciar. Tudo é processado no seu próprio navegador: o save nunca é enviado para nenhum servidor.',
+    c_how_h: 'Como funciona',
+    c_how_p: '<ol><li>Abra o jogo pelo menos uma vez para gerar o save (<code>SaveFile_Live.es3</code>).</li><li>Arraste o arquivo para a área no topo da página (ou clique para escolher).</li><li>O site decifra o save no seu navegador e cruza os itens com uma cópia atualizada dos preços do Mercado Steam.</li><li>Veja o valor total, item a item, e o painel <b>Top 4 pra lançar</b> com as vendas mais lucrativas.</li></ol>',
+    c_values_h: 'Anúncio, venda imediata e liquidez',
+    c_values_p: '<p><b>Anúncio</b> é o preço de listagem: o valor mais barato que alguém está pedindo para vender. Você anunciaria por perto disso e <i>esperaria</i> um comprador.</p><p><b>Venda imediata</b> é a maior <b>ordem de compra</b> ativa — o valor que você recebe <i>na hora</i>, batendo na ordem de quem já quer comprar. Costuma ser menor que o anúncio, mas vende instantaneamente.</p><p><b>Liquidez</b> mostra quantas ordens de compra existem: quanto maior, mais fácil vender rápido.</p>',
+    c_strategy_h: 'A janela de 4 itens a cada 8 horas',
+    c_strategy_p: 'O TBH permite enviar apenas <b>4 itens do jogo para o inventário da Steam a cada 8 horas</b>. Por isso o painel <b>Top 4 pra lançar</b> ordena os itens do seu baú pela <b>venda imediata</b> (o que rende mais na hora), ajudando você a aproveitar cada janela com os itens mais lucrativos primeiro.',
+    c_privacy_h: 'Privacidade e segurança',
+    c_privacy_p: 'Seu save é lido e decifrado <b>100% no navegador</b> (Web Crypto). Nada é enviado, salvo ou compartilhado — ao fechar a página, nada do seu save permanece. O projeto é de código aberto e apenas <b>lê</b> o arquivo: não altera o save nem o jogo. Veja também a nossa <a href="./privacidade.html">Política de Privacidade</a>.',
+    c_faq_h: 'Perguntas frequentes',
+    faq_q1: 'Preciso instalar alguma coisa?',
+    faq_a1: 'Não. Tudo funciona direto no navegador — basta subir o arquivo de save do jogo.',
+    faq_q2: 'Meu save é enviado para algum servidor?',
+    faq_a2: 'Não. Ele é processado apenas no seu navegador e nunca sai do seu computador.',
+    faq_q3: 'De quanto em quanto tempo os preços são atualizados?',
+    faq_a3: 'Automaticamente, cerca de a cada 30 minutos. Não são valores em tempo real — confira sempre na Steam antes de vender.',
+    faq_q4: 'Por que a "venda imediata" é menor que o anúncio?',
+    faq_a4: 'Porque o anúncio é o preço de quem está <i>vendendo</i> (e você entraria na fila), enquanto a venda imediata é a maior ordem de <i>compra</i> — o valor que você recebe vendendo na hora.',
+    faq_q5: 'Os valores já descontam a taxa da Steam?',
+    faq_a5: 'Não. Os preços mostrados são os do Mercado (como aparecem na Steam). A Steam cobra uma taxa sobre as vendas, então o valor líquido que você recebe é um pouco menor.',
     s_loading: 'Carregando tabelas de itens e snapshot do mercado…',
     s_reading: f => `Lendo <b>${f}</b>…`,
     s_decrypting: 'Decifrando o save no navegador…',
@@ -228,6 +288,27 @@ const I18N = {
     top4_unit: 'ea.',
     top4_total: v => `Listing these 4 now you get ≈ <b>${v}</b> instantly.`,
     liq_alta: 'high', liq_media: 'medium', liq_baixa: 'low', liq_nenhuma: 'none',
+    c_about_h: 'What is tbhbau?',
+    c_about_p: '<b>tbhbau</b> is a free tool that estimates the value of your stash and inventory in the game <b>TBH: Task Bar Hero</b> using real <b>Steam Market</b> prices. Upload your game save file and, in seconds, see how much each item is worth — in <b>Brazilian reais and US dollars</b> —, how much you get selling instantly, and which items are best to list. Everything runs in your own browser: the save is never sent to any server.',
+    c_how_h: 'How it works',
+    c_how_p: '<ol><li>Open the game at least once to generate the save (<code>SaveFile_Live.es3</code>).</li><li>Drag the file onto the area at the top of the page (or click to choose it).</li><li>The site decrypts the save in your browser and matches items against an up-to-date copy of Steam Market prices.</li><li>See the total value, item by item, and the <b>Top 4 to list</b> panel with the most profitable sales.</li></ol>',
+    c_values_h: 'Listing, instant sell and liquidity',
+    c_values_p: '<p><b>Listing</b> is the ask price: the cheapest price someone is asking to sell for. You would list around that and <i>wait</i> for a buyer.</p><p><b>Instant sell</b> is the highest active <b>buy order</b> — what you get <i>right now</i> by hitting the order of someone already wanting to buy. It is usually lower than the listing, but sells instantly.</p><p><b>Liquidity</b> shows how many buy orders exist: the higher, the easier to sell fast.</p>',
+    c_strategy_h: 'The 4-items-every-8-hours window',
+    c_strategy_p: 'TBH only lets you send <b>4 items from the game to your Steam inventory every 8 hours</b>. That is why the <b>Top 4 to list</b> panel ranks your stash items by <b>instant sell</b> (what pays the most right now), helping you make each window count with the most profitable items first.',
+    c_privacy_h: 'Privacy & safety',
+    c_privacy_p: 'Your save is read and decrypted <b>100% in the browser</b> (Web Crypto). Nothing is sent, stored or shared — once you close the page, nothing of your save remains. The project is open source and only <b>reads</b> the file: it never changes your save or the game. See also our <a href="./privacidade.html">Privacy Policy</a>.',
+    c_faq_h: 'Frequently asked questions',
+    faq_q1: 'Do I need to install anything?',
+    faq_a1: 'No. Everything works right in the browser — just upload the game save file.',
+    faq_q2: 'Is my save uploaded to a server?',
+    faq_a2: 'No. It is processed only in your browser and never leaves your computer.',
+    faq_q3: 'How often are prices updated?',
+    faq_a3: 'Automatically, roughly every 30 minutes. They are not real-time — always check on Steam before selling.',
+    faq_q4: 'Why is "instant sell" lower than the listing?',
+    faq_a4: 'Because the listing is the price of someone <i>selling</i> (you would wait in line), while instant sell is the highest <i>buy</i> order — what you get by selling right now.',
+    faq_q5: 'Do the values already deduct the Steam fee?',
+    faq_a5: 'No. The prices shown are Market prices (as they appear on Steam). Steam charges a fee on sales, so the net amount you receive is a bit lower.',
     s_loading: 'Loading item tables and market snapshot…',
     s_reading: f => `Reading <b>${f}</b>…`,
     s_decrypting: 'Decrypting the save in your browser…',
