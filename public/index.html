@@ -91,7 +91,12 @@
   .obrow .obp, .obrow .obq { position:relative; z-index:1; }
   .obrow.buy .obp { color:var(--green); } .obrow.sell .obp { color:#f4707a; }
   .obrow .obq { color:var(--mut); }
-  .idet-chart { text-align:center; padding:18px; margin-top:14px; border:1px dashed var(--line); border-radius:8px; font-size:13px; }
+  .idet-chart { text-align:center; padding:18px; margin-top:14px; border:1px dashed var(--line); border-radius:8px; font-size:13px; line-height:1.5; }
+  .idet-charttitle { display:flex; justify-content:space-between; font-size:12px; margin:16px 0 6px; color:#c7cdd8; }
+  .idet-chart-wrap { position:relative; height:120px; border:1px solid var(--line); border-radius:8px; background:#10141a; overflow:hidden; }
+  .idet-svg { width:100%; height:120px; display:block; }
+  .idet-yhi, .idet-ylo { position:absolute; right:6px; font-size:10px; color:var(--mut); background:rgba(16,20,26,.7); padding:0 3px; border-radius:3px; }
+  .idet-yhi { top:4px; } .idet-ylo { bottom:4px; }
   footer { max-width:1000px; margin:0 auto; padding:20px; color:var(--mut); font-size:13px; }
   .note { background:#16202b; border:1px solid #244; border-radius:8px; padding:10px 12px; font-size:13px; color:#bcd; margin-top:14px; }
   .content { max-width:1000px; margin:36px auto 0; padding:0 20px; }
@@ -293,7 +298,9 @@ const I18N = {
     idet_loading: 'carregando order book…', idet_error: 'não foi possível carregar o order book agora. Tente de novo em instantes.',
     idet_steam: 'ver na Steam ↗', idet_hint: 'Order book ao vivo da Steam · valores em R$',
     idet_lowest: 'Menor venda', idet_median: 'Mediana', idet_vol: 'Volume 24h', idet_bestbid: 'Melhor compra', idet_bestask: 'Melhor venda', idet_spread: 'Spread',
-    idet_buyorders: 'Ordens de compra', idet_sellorders: 'Ordens de venda', idet_chart_soon: '📈 Gráfico de histórico em breve',
+    idet_buyorders: 'Ordens de compra', idet_sellorders: 'Ordens de venda',
+    idet_chart_title: 'Histórico — menor venda (R$)', idet_chart_pts: n => `${n} pontos`,
+    idet_chart_empty: '📈 Coletando histórico… o gráfico aparece conforme os preços forem registrados (começamos a gravar agora; leva alguns dias pra encorpar).',
     s_loading: 'Carregando tabelas de itens e snapshot do mercado…',
     s_reading: f => `Lendo <b>${f}</b>…`,
     s_decrypting: 'Decifrando o save no navegador…',
@@ -355,7 +362,9 @@ const I18N = {
     idet_loading: 'loading order book…', idet_error: 'could not load the order book right now. Try again in a moment.',
     idet_steam: 'view on Steam ↗', idet_hint: 'Live order book from Steam · values in R$',
     idet_lowest: 'Lowest ask', idet_median: 'Median', idet_vol: '24h volume', idet_bestbid: 'Best bid', idet_bestask: 'Best ask', idet_spread: 'Spread',
-    idet_buyorders: 'Buy orders', idet_sellorders: 'Sell orders', idet_chart_soon: '📈 Price history chart coming soon',
+    idet_buyorders: 'Buy orders', idet_sellorders: 'Sell orders',
+    idet_chart_title: 'History — lowest ask (R$)', idet_chart_pts: n => `${n} points`,
+    idet_chart_empty: '📈 Collecting history… the chart appears as prices get recorded (we just started; it takes a few days to fill in).',
     s_loading: 'Loading item tables and market snapshot…',
     s_reading: f => `Reading <b>${f}</b>…`,
     s_decrypting: 'Decrypting the save in your browser…',
@@ -589,7 +598,27 @@ function obColumn(orders, cls, label) {
     : '<div class="muted" style="padding:6px;font-size:12px">—</div>';
   return `<div><div class="obhead"><span class="h-${cls}">${label}</span><span class="muted">${fmtQty(totalQ)}</span></div>${body}</div>`;
 }
-function renderItemDetail(it, ob) {
+// Gráfico de linha (SVG) do histórico de "menor venda". points: [[t, ask, bid, vol], ...]
+function historyChart(points) {
+  const pts = (points || []).filter(p => p[1] != null);
+  if (pts.length < 2) return `<div class="idet-chart muted">${t('idet_chart_empty')}</div>`;
+  const W = 560, H = 120, pad = 8;
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const minX = xs[0], maxX = xs[xs.length - 1], minY = Math.min(...ys), maxY = Math.max(...ys);
+  const sx = x => pad + (maxX === minX ? 0 : (x - minX) / (maxX - minX)) * (W - 2 * pad);
+  const sy = v => H - pad - (maxY === minY ? 0.5 * (H - 2 * pad) : (v - minY) / (maxY - minY) * (H - 2 * pad));
+  const line = pts.map((p, i) => `${i ? 'L' : 'M'}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(' ');
+  const area = `${line} L${sx(maxX).toFixed(1)},${(H - pad).toFixed(1)} L${sx(minX).toFixed(1)},${(H - pad).toFixed(1)} Z`;
+  return `<div class="idet-charttitle"><span>${t('idet_chart_title')}</span><span class="muted">${t('idet_chart_pts', pts.length)}</span></div>
+    <div class="idet-chart-wrap">
+      <div class="idet-yhi">${moneyBrl(maxY)}</div><div class="idet-ylo">${moneyBrl(minY)}</div>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="idet-svg">
+        <path d="${area}" fill="rgba(102,192,244,.12)" stroke="none"/>
+        <path d="${line}" fill="none" stroke="#66c0f4" stroke-width="1.5" vector-effect="non-scaling-stroke"/>
+      </svg>
+    </div>`;
+}
+function renderItemDetail(it, ob, points) {
   const bid = ob.maxBuyCents, ask = ob.minSellCents;
   const spread = (bid != null && ask != null) ? ask - bid : null;
   const spreadPct = (spread != null && (ask + bid) > 0) ? spread / ((ask + bid) / 2) * 100 : null;
@@ -600,7 +629,7 @@ function renderItemDetail(it, ob) {
   ];
   $('#idetIndicators').innerHTML = ind.map(([k, v]) => `<div class="istat"><div class="ik">${k}</div><div class="iv">${v}</div></div>`).join('');
   $('#idetBody').innerHTML = `<div class="obwrap">${obColumn(ob.buyOrders, 'buy', t('idet_buyorders'))}${obColumn(ob.sellOrders, 'sell', t('idet_sellorders'))}</div>`
-    + `<div class="idet-chart muted">${t('idet_chart_soon')}</div>`;
+    + historyChart(points);
 }
 async function openItemDetail(it) {
   $('#idetName').textContent = it.name;
@@ -611,9 +640,15 @@ async function openItemDetail(it) {
   $('#idetBody').innerHTML = `<div class="muted" style="padding:24px;text-align:center">${t('idet_loading')}</div>`;
   itemModal.classList.remove('hidden');
   try {
-    const r = await fetch(`${API_BASE}/api/item?hash=${encodeURIComponent(it.hash)}`, { cache: 'no-store' });
-    if (!r.ok) throw new Error('HTTP ' + r.status);
-    renderItemDetail(it, await r.json());
+    const [obR, histR] = await Promise.all([
+      fetch(`${API_BASE}/api/item?hash=${encodeURIComponent(it.hash)}`, { cache: 'no-store' }),
+      fetch(`${API_BASE}/api/history?hash=${encodeURIComponent(it.hash)}`, { cache: 'no-store' }).catch(() => null),
+    ]);
+    if (!obR.ok) throw new Error('HTTP ' + obR.status);
+    const ob = await obR.json();
+    let points = [];
+    if (histR && histR.ok) { try { points = (await histR.json()).points || []; } catch {} }
+    renderItemDetail(it, ob, points);
   } catch (e) {
     $('#idetBody').innerHTML = `<div class="err" style="padding:24px;text-align:center">${t('idet_error')}</div>`;
   }

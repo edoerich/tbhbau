@@ -9,6 +9,9 @@ import { fileURLToPath } from 'node:url';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const DATA = path.join(ROOT, 'public', 'data'); // o site (public/) lê este snapshot
 const SNAP = path.join(DATA, 'snapshot.json');
+const HISTDIR = path.join(DATA, 'history');     // série temporal por item (para o gráfico)
+const HIST_MAX = 1500;                          // ~1 mês a 1 ponto/30min
+const HIST_MIN_GAP_MS = 20 * 60 * 1000;         // não grava pontos mais densos que 20 min
 const APPID = 3678970;
 const UA = 'giba-steam-market/1.0 (uso pessoal read-only)';
 const LIMIT = Number(process.env.LIMIT || 0);             // >0 = processa só N itens (teste)
@@ -18,6 +21,21 @@ const LISTINGS_EVERY_MS = 20 * 60 * 1000;                 // re-busca a lista US
 const sleep = ms => new Promise(r => setTimeout(r, ms));
 const log = m => console.log(`[${new Date().toISOString()}] ${m}`);
 const brlToCents = s => { const m = String(s || '').match(/[\d.,]+/); if (!m) return null; const v = parseFloat(m[0].replace(/\./g, '').replace(',', '.')); return Number.isFinite(v) ? Math.round(v * 100) : null; };
+
+// ── Histórico: grava [timestamp, menorVenda, vendaImediata, volume] por item ──
+const safeName = h => Buffer.from(h).toString('base64url');
+const volNum = v => { const n = parseInt(String(v || '').replace(/[^\d]/g, ''), 10); return Number.isFinite(n) ? n : null; };
+function recordHistory(it) {
+  if (it.brlCents == null && it.buyCents == null) return; // nada pra registrar ainda
+  const f = path.join(HISTDIR, safeName(it.hash) + '.json');
+  let arr = [];
+  try { arr = JSON.parse(fs.readFileSync(f, 'utf8')); } catch {}
+  const now = Date.now();
+  if (arr.length && (now - arr[arr.length - 1][0]) < HIST_MIN_GAP_MS) return; // ponto recente demais
+  arr.push([now, it.brlCents ?? null, it.buyCents ?? null, volNum(it.volume)]);
+  if (arr.length > HIST_MAX) arr = arr.slice(-HIST_MAX);
+  try { const t = f + '.tmp'; fs.writeFileSync(t, JSON.stringify(arr)); fs.renameSync(t, f); } catch {}
+}
 
 async function steamJson(url, headers = {}) {
   const res = await fetch(url, { headers: { 'User-Agent': UA, 'Accept': 'application/json', ...headers } });
@@ -75,6 +93,7 @@ function saveSnap(snap) {
 
 async function main() {
   fs.mkdirSync(DATA, { recursive: true });
+  fs.mkdirSync(HISTDIR, { recursive: true });
   let snap = loadSnap();
   if (!snap) {
     // seed a partir do market-snapshot.json existente (se houver), senão começa vazio
@@ -110,6 +129,7 @@ async function main() {
       await sleep(OB_DELAY);
       // BRL anúncio: 1 a cada 2 itens (priceoverview é o mais limitado)
       if (i % 2 === 0) { try { const b = await fetchBrlListing(it.hash); if (b) { if (b.cents != null) it.brlCents = b.cents; it.medianCents = b.median; it.volume = b.volume; } } catch (e) { if (e.code === 429) await sleep(20000); } await sleep(BRL_DELAY); }
+      recordHistory(it); // grava um ponto na série temporal do item
       if (++i % 20 === 0) { saveSnap(snap); log(`ciclo ${cycle}: ${i}/${all.length} (orderbook err ${obErr})`); }
     }
     saveSnap(snap);

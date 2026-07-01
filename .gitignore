@@ -8,3 +8,5 @@ data/app.log
 
 # snapshot vivo gerado pelo worker na VM (o versionado é o .seed.json)
 public/data/snapshot.json
+# série temporal por item gravada pelo worker na VM
+public/data/history/

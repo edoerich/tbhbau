@@ -90,6 +90,18 @@ http.createServer(async (req, res) => {
     catch (e) { return sendJson(res, e.code === 429 ? 429 : 500, { error: e.message, hash }); }
   }
 
+  // ── API: histórico do item (série temporal gravada pelo worker) ──
+  if (u.pathname === '/api/history') {
+    const hash = u.searchParams.get('hash');
+    if (!hash) return sendJson(res, 400, { error: 'hash obrigatório' });
+    const f = path.join(PUB, 'data', 'history', Buffer.from(hash).toString('base64url') + '.json');
+    return fs.readFile(f, 'utf8', (err, txt) => {
+      if (err) return sendJson(res, 200, { hash, points: [] });
+      try { return sendJson(res, 200, { hash, points: JSON.parse(txt) }); }
+      catch { return sendJson(res, 200, { hash, points: [] }); }
+    });
+  }
+
   // ── estáticos (servidos de public/) ──
   let p = decodeURIComponent(u.pathname);
   if (p === '/') p = '/index.html';
