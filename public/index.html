@@ -21,6 +21,9 @@
   #drop b { color:var(--acc); }
   #drop small { display:block; color:var(--mut); margin-top:8px; }
   .badge { display:inline-block; font-size:12px; color:var(--green); border:1px solid var(--green); border-radius:20px; padding:2px 10px; margin-top:10px; }
+  #drop code { background:#0a0c10; padding:1px 6px; border-radius:4px; font-size:12px; color:#c7cdd8; }
+  .copybtn { margin-top:8px; background:#0a0c10; color:var(--acc); border:1px solid var(--line); border-radius:8px; padding:5px 12px; font:inherit; font-size:12px; cursor:pointer; }
+  .copybtn:hover { border-color:var(--acc); }
   .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:20px 0; }
   .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
   .stat .k { color:var(--mut); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
@@ -96,7 +99,8 @@
 <main>
   <div id="drop">
     <div data-i18n-html="drop_main">Arraste o <b>SaveFile_Live.es3</b> aqui, ou <b>clique para escolher</b></div>
-    <small data-i18n-html="drop_path">Fica em <code>%AppData%\LocalLow\TesseractStudio\TaskbarHero\</code></small>
+    <small><span data-i18n="drop_path_pre">O save fica em:</span> <code id="savePath">%USERPROFILE%\AppData\LocalLow\TesseractStudio\TaskbarHero</code></small>
+    <div><button id="copyPath" class="copybtn" type="button" data-i18n="copy_path">📋 copiar caminho</button></div>
     <span class="badge" data-i18n="drop_badge">🔒 processado localmente · read-only</span>
   </div>
   <input id="file" type="file" accept=".es3" class="hidden">
@@ -203,7 +207,7 @@ const I18N = {
     h1: 'TBH: Baú → Mercado Steam',
     sub: 'Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador — nada é enviado pra nenhum servidor.</b>',
     drop_main: 'Arraste o <b>SaveFile_Live.es3</b> aqui, ou <b>clique para escolher</b>',
-    drop_path: 'Fica em <code>%AppData%\\LocalLow\\TesseractStudio\\TaskbarHero\\</code>',
+    drop_path_pre: 'O save fica em:', copy_path: '📋 copiar caminho', copy_path_done: '✓ copiado!',
     drop_badge: '🔒 processado localmente · read-only',
     q_ph: 'filtrar item…',
     th_item: 'Item', th_kind: 'Tipo', th_qty: 'Qtd', th_listing: 'Anúncio un.',
@@ -261,7 +265,7 @@ const I18N = {
     h1: 'TBH: Stash → Steam Market',
     sub: 'Upload your <code>SaveFile_Live.es3</code> and see your stash value on the Steam Market. <b>The save is read 100% in your browser — nothing is sent to any server.</b>',
     drop_main: 'Drag your <b>SaveFile_Live.es3</b> here, or <b>click to choose</b>',
-    drop_path: 'Located in <code>%AppData%\\LocalLow\\TesseractStudio\\TaskbarHero\\</code>',
+    drop_path_pre: 'Your save is located at:', copy_path: '📋 copy path', copy_path_done: '✓ copied!',
     drop_badge: '🔒 processed locally · read-only',
     q_ph: 'filter item…',
     th_item: 'Item', th_kind: 'Type', th_qty: 'Qty', th_listing: 'Listing ea.',
@@ -482,6 +486,13 @@ fileInput.addEventListener('change', e => e.target.files[0] && handleFile(e.targ
 ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('hover'); }));
 ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('hover'); }));
 drop.addEventListener('drop', e => { const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
+$('#copyPath').addEventListener('click', async e => {
+  e.stopPropagation(); // não deixa abrir o seletor de arquivo do #drop
+  const path = $('#savePath').textContent;
+  try { await navigator.clipboard.writeText(path); } catch {}
+  const btn = $('#copyPath'); btn.textContent = t('copy_path_done');
+  setTimeout(() => btn.textContent = t('copy_path'), 1500);
+});
 $('#q').addEventListener('input', renderRows);
 document.querySelectorAll('th[data-s]').forEach(th => th.addEventListener('click', () => {
   const k = th.dataset.s; sortDir = (sortKey === k) ? -sortDir : -1; sortKey = k; renderRows();
