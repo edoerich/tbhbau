@@ -143,6 +143,7 @@
       </div>
       <input id="q" type="search" data-i18n-ph="q_ph" placeholder="filtrar item…">
       <span class="muted" id="count"></span>
+      <button id="clearSave" class="copybtn hidden" type="button" data-i18n="clear_save" style="margin:0 0 0 auto">🗑️ esquecer save</button>
     </div>
     <table id="tbl">
       <thead><tr>
@@ -177,7 +178,7 @@
     </article>
     <article>
       <h2 data-i18n="c_privacy_h">Privacidade e segurança</h2>
-      <p data-i18n-html="c_privacy_p">Seu save é lido e decifrado <b>100% no navegador</b> (Web Crypto). Nada é enviado, salvo ou compartilhado — ao fechar a página, nada do seu save permanece. O projeto é de código aberto e apenas <b>lê</b> o arquivo: não altera o save nem o jogo. Veja também a nossa <a href="./privacidade.html">Política de Privacidade</a>.</p>
+      <p data-i18n-html="c_privacy_p">Seu save é lido e decifrado <b>100% no navegador</b> (Web Crypto). Nunca é enviado a nenhum servidor; fica guardado só no seu navegador (armazenamento local) pra recarregar quando você volta — dá pra remover no botão "esquecer save". O projeto é de código aberto e apenas <b>lê</b> o arquivo: não altera o save nem o jogo. Veja também a nossa <a href="./privacidade.html">Política de Privacidade</a>.</p>
     </article>
     <article>
       <h2 data-i18n="c_faq_h">Perguntas frequentes</h2>
@@ -283,7 +284,7 @@ const I18N = {
     c_strategy_h: 'A janela de 4 itens a cada 8 horas',
     c_strategy_p: 'O TBH permite enviar apenas <b>4 itens do jogo para o inventário da Steam a cada 8 horas</b>. Por isso o painel <b>Top 4 pra lançar</b> ordena os itens do seu baú pela <b>venda imediata</b> (o que rende mais na hora), ajudando você a aproveitar cada janela com os itens mais lucrativos primeiro.',
     c_privacy_h: 'Privacidade e segurança',
-    c_privacy_p: 'Seu save é lido e decifrado <b>100% no navegador</b> (Web Crypto). Nada é enviado, salvo ou compartilhado — ao fechar a página, nada do seu save permanece. O projeto é de código aberto e apenas <b>lê</b> o arquivo: não altera o save nem o jogo. Veja também a nossa <a href="./privacidade.html">Política de Privacidade</a>.',
+    c_privacy_p: 'Seu save é lido e decifrado <b>100% no navegador</b> (Web Crypto). Nunca é enviado a nenhum servidor; fica guardado só no seu navegador (armazenamento local) pra recarregar quando você volta — dá pra remover no botão "esquecer save". O projeto é de código aberto e apenas <b>lê</b> o arquivo: não altera o save nem o jogo. Veja também a nossa <a href="./privacidade.html">Política de Privacidade</a>.',
     c_faq_h: 'Perguntas frequentes',
     faq_q1: 'Preciso instalar alguma coisa?',
     faq_a1: 'Não. Tudo funciona direto no navegador — basta subir o arquivo de save do jogo.',
@@ -306,6 +307,9 @@ const I18N = {
     s_decrypting: 'Decifrando o save no navegador…',
     s_crossing: 'Cruzando o baú com o Mercado Steam…',
     s_error: msg => `Falha ao ler o save: ${msg}. Confira se é o <code>SaveFile_Live.es3</code> do TBH.`,
+    s_cached: 'Carregando último save salvo…', clear_save: '🗑️ esquecer save',
+    st_net: 'Você recebe (líquido)', st_net_note: 'após taxa ~13%',
+    top4_net: v => `≈ ${v} líquido (após taxa Steam)`,
   },
   en: {
     h1: 'TBH: Stash → Steam Market',
@@ -347,7 +351,7 @@ const I18N = {
     c_strategy_h: 'The 4-items-every-8-hours window',
     c_strategy_p: 'TBH only lets you send <b>4 items from the game to your Steam inventory every 8 hours</b>. That is why the <b>Top 4 to list</b> panel ranks your stash items by <b>instant sell</b> (what pays the most right now), helping you make each window count with the most profitable items first.',
     c_privacy_h: 'Privacy & safety',
-    c_privacy_p: 'Your save is read and decrypted <b>100% in the browser</b> (Web Crypto). Nothing is sent, stored or shared — once you close the page, nothing of your save remains. The project is open source and only <b>reads</b> the file: it never changes your save or the game. See also our <a href="./privacidade.html">Privacy Policy</a>.',
+    c_privacy_p: 'Your save is read and decrypted <b>100% in the browser</b> (Web Crypto). It is never sent to any server; it is kept only in your browser (local storage) so it reloads when you come back — you can remove it with the "forget save" button. The project is open source and only <b>reads</b> the file: it never changes your save or the game. See also our <a href="./privacidade.html">Privacy Policy</a>.',
     c_faq_h: 'Frequently asked questions',
     faq_q1: 'Do I need to install anything?',
     faq_a1: 'No. Everything works right in the browser — just upload the game save file.',
@@ -370,6 +374,9 @@ const I18N = {
     s_decrypting: 'Decrypting the save in your browser…',
     s_crossing: 'Matching your stash with the Steam Market…',
     s_error: msg => `Failed to read the save: ${msg}. Make sure it is the TBH <code>SaveFile_Live.es3</code>.`,
+    s_cached: 'Loading last saved file…', clear_save: '🗑️ forget save',
+    st_net: 'You receive (net)', st_net_note: 'after ~13% fee',
+    top4_net: v => `≈ ${v} net (after Steam fee)`,
   },
 };
 let LANG = localStorage.getItem('lang') || ((navigator.language || 'pt').toLowerCase().startsWith('pt') ? 'pt' : 'en');
@@ -392,6 +399,9 @@ let CUR = 'brl'; // moeda selecionada
 const money = (cents, cur = CUR) => cents == null ? '—'
   : `${SYMBOLS[cur]} ${(cents / 100).toLocaleString(LOCALES[cur], { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 const moneyBrl = c => money(c, 'brl');
+// Taxa do Mercado Steam: 5% Steam + 10% jogo = divisor 1,15 → vendedor recebe ~87% (taxa ~13%).
+const STEAM_FEE_DIV = 1.15;
+const netCents = c => c == null ? null : Math.round(c / STEAM_FEE_DIV);
 
 let tables = null;
 let lastStash = null;
@@ -424,10 +434,18 @@ async function loadTables() {
   return tables;
 }
 
+// ── Cache do save (localStorage) — recarrega sozinho no F5. Fica só no navegador. ──
+const SAVE_KEY = 'tbhSave', SAVE_NAME_KEY = 'tbhSaveName';
+function bytesToB64(bytes) { let bin = ''; const chunk = 0x8000; for (let i = 0; i < bytes.length; i += chunk) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + chunk)); return btoa(bin); }
+function b64ToBytes(b64) { const bin = atob(b64); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+
 async function handleFile(file) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  await handleBytes(bytes, file.name, false);
+}
+async function handleBytes(bytes, name, fromCache) {
   try {
-    setStatus(t('s_reading', file.name));
-    const bytes = new Uint8Array(await file.arrayBuffer());
+    setStatus(fromCache ? t('s_cached') : t('s_reading', name));
     const tb = await loadTables();
     setStatus(t('s_decrypting'));
     const plain = await decryptES3(bytes, PASSWORD);
@@ -437,9 +455,12 @@ async function handleFile(file) {
     lastStash = stash;
     render();
     statusEl.classList.add('hidden');
+    $('#clearSave').classList.remove('hidden');
+    if (!fromCache) { try { localStorage.setItem(SAVE_KEY, bytesToB64(bytes)); localStorage.setItem(SAVE_NAME_KEY, name); } catch {} }
   } catch (e) {
     console.error(e);
     setStatus(t('s_error', e.message), true);
+    if (fromCache) { try { localStorage.removeItem(SAVE_KEY); } catch {} } // cache inválido
   }
 }
 
@@ -454,6 +475,7 @@ function render() {
   $('#summary').innerHTML = `
     <div class="stat"><div class="k">${t('st_total')} (${SYMBOLS[CUR]})</div><div class="v big">${money(s.total[CUR])}</div></div>
     <div class="stat" style="border-color:#2f5a30"><div class="k">${t('st_instant')}</div><div class="v big" style="color:var(--green)">${moneyBrl(s.instantTotalBrl)}</div></div>
+    <div class="stat"><div class="k">${t('st_net')}</div><div class="v">${moneyBrl(netCents(s.instantTotalBrl))}</div><div class="pend" style="color:var(--mut)">${t('st_net_note')}</div></div>
     <div class="stat"><div class="k">${t('st_gear')}</div><div class="v">${money(s.gear[CUR])}</div></div>
     <div class="stat"><div class="k">${t('st_materials')}</div><div class="v">${money(s.mat[CUR])}</div></div>
     <div class="stat"><div class="k">${t('st_items')}</div><div class="v">${s.totalItems}</div></div>
@@ -529,7 +551,7 @@ function renderTop4() {
           </div>
         </div>`).join('')}
     </div>
-    <div class="tot">${t('top4_total', moneyBrl(total))}</div>`;
+    <div class="tot">${t('top4_total', moneyBrl(total))} <span class="muted" style="font-size:13px">${t('top4_net', moneyBrl(netCents(total)))}</span></div>`;
 }
 
 // eventos
@@ -654,7 +676,18 @@ async function openItemDetail(it) {
   }
 }
 
+$('#clearSave').addEventListener('click', () => {
+  try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_NAME_KEY); } catch {}
+  location.reload();
+});
+
 applyI18n(); // aplica o idioma inicial (detectado/salvo) nos textos estáticos
+
+// recarrega o último save salvo (só no navegador), se houver
+(function () {
+  let b64; try { b64 = localStorage.getItem(SAVE_KEY); } catch {}
+  if (b64) { try { handleBytes(b64ToBytes(b64), localStorage.getItem(SAVE_NAME_KEY) || 'save', true); } catch { try { localStorage.removeItem(SAVE_KEY); } catch {} } }
+})();
 </script>
 </body>
 </html>
