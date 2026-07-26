@@ -118,7 +118,7 @@
       <button data-lang="en">EN</button>
     </div>
   </div>
-  <div class="sub" data-i18n-html="sub">Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador — nada é enviado pra nenhum servidor.</b></div>
+  <div class="sub" data-i18n-html="sub">Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador; nada é enviado pra nenhum servidor.</b></div>
 </header>
 <main>
   <div id="drop">
@@ -161,8 +161,12 @@
 
   <section class="content">
     <article>
+      <h2 data-i18n="c_guides_h">Guias e artigos</h2>
+      <p><a href="./guia-como-vender.html">Como vender itens do TBH no Mercado Steam</a> · <a href="./guia-anuncio-vs-venda-imediata.html">Anúncio vs venda imediata</a> · <a href="./guia-grades-raridades.html">Grades e raridades</a> · <a href="./guias.html">todos os guias</a></p>
+    </article>
+    <article>
       <h2 data-i18n="c_about_h">O que é o tbhbau?</h2>
-      <p data-i18n-html="c_about_p">O <b>tbhbau</b> é uma ferramenta gratuita que estima o valor do seu baú e inventário no jogo <b>TBH: Task Bar Hero</b> usando os preços reais do <b>Mercado da Steam</b>. Você sobe o arquivo de save do jogo e, em segundos, vê quanto cada item vale — em <b>reais e dólares</b> —, quanto você recebe vendendo na hora e quais itens compensam mais anunciar. Tudo é processado no seu próprio navegador: o save nunca é enviado para nenhum servidor.</p>
+      <p data-i18n-html="c_about_p">O <b>tbhbau</b> é uma ferramenta gratuita que estima o valor do seu baú e inventário no jogo <b>TBH: Task Bar Hero</b> usando os preços reais do <b>Mercado da Steam</b>. Você sobe o arquivo de save do jogo e, em segundos, vê quanto cada item vale (em <b>reais e dólares</b>), quanto você recebe vendendo na hora e quais itens compensam mais anunciar. Tudo é processado no seu próprio navegador: o save nunca é enviado para nenhum servidor.</p>
     </article>
     <article>
       <h2 data-i18n="c_how_h">Como funciona</h2>
@@ -170,7 +174,7 @@
     </article>
     <article>
       <h2 data-i18n="c_values_h">Anúncio, venda imediata e liquidez</h2>
-      <div data-i18n-html="c_values_p"><p><b>Anúncio</b> é o preço de listagem: o valor mais barato que alguém está pedindo para vender. Você anunciaria por perto disso e <i>esperaria</i> um comprador.</p><p><b>Venda imediata</b> é a maior <b>ordem de compra</b> ativa — o valor que você recebe <i>na hora</i>, batendo na ordem de quem já quer comprar. Costuma ser menor que o anúncio, mas vende instantaneamente.</p><p><b>Liquidez</b> mostra quantas ordens de compra existem: quanto maior, mais fácil vender rápido.</p></div>
+      <div data-i18n-html="c_values_p"><p><b>Anúncio</b> é o preço de listagem: o valor mais barato que alguém está pedindo para vender. Você anunciaria por perto disso e <i>esperaria</i> um comprador.</p><p><b>Venda imediata</b> é a maior <b>ordem de compra</b> ativa, o valor que você recebe <i>na hora</i>, batendo na ordem de quem já quer comprar. Costuma ser menor que o anúncio, mas vende instantaneamente.</p><p><b>Liquidez</b> mostra quantas ordens de compra existem: quanto maior, mais fácil vender rápido.</p></div>
     </article>
     <article>
       <h2 data-i18n="c_strategy_h">A janela de 4 itens a cada 8 horas</h2>
@@ -217,7 +221,7 @@
   <div class="modal-box modal-wide">
     <button id="itemClose" class="modal-x" aria-label="fechar">×</button>
     <div class="idet-head">
-      <img id="idetIcon" class="idet-icon" alt="">
+      <img id="idetIcon" class="idet-icon" alt="" src="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==" style="display:none">
       <div style="flex:1">
         <div id="idetName" class="idet-name"></div>
         <div id="idetType" class="muted" style="font-size:13px"></div>
@@ -234,6 +238,7 @@
   <div style="margin-top:6px">
     <span data-i18n="footer_made">Feito por</span> <b>edelrich</b> ·
     <a id="pix" href="#" title="Pix" data-i18n="support_link">☕ Apoiar via Pix</a> ·
+    <a href="./guias.html" data-i18n="guides_link">Guias</a> ·
     <a href="./privacidade.html" data-i18n="privacy_link">Privacidade</a> ·
     <span data-i18n="footer_based">baseado no projeto</span> <a href="https://github.com/lezards/giba-steam-market" target="_blank">giba-steam-market</a> (MIT)
   </div>
@@ -246,7 +251,7 @@ import { decryptES3, readStash } from './tbh-save.js';
 const I18N = {
   pt: {
     h1: 'TBH: Baú → Mercado Steam',
-    sub: 'Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador — nada é enviado pra nenhum servidor.</b>',
+    sub: 'Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador; nada é enviado pra nenhum servidor.</b>',
     drop_main: 'Arraste o <b>SaveFile_Live.es3</b> aqui, ou <b>clique para escolher</b>',
     drop_path_pre: 'O save fica em:', copy_path: '📋 copiar caminho', copy_path_done: '✓ copiado!',
     drop_badge: '🔒 processado localmente · read-only',
@@ -257,7 +262,7 @@ const I18N = {
     pix_title: 'Apoiar via Pix ☕', pix_desc: 'Escaneie o QR no app do banco, ou copie o código.',
     pix_copy: 'Copiar código Pix', pix_copied: 'Copiado ✓',
     footer_1: 'Avaliador de baú do <b>TBH: Task Bar Hero</b> · seu save é lido só no navegador, nada é enviado.',
-    footer_made: 'Feito por', support_link: '☕ Apoiar via Pix', privacy_link: 'Privacidade', footer_based: 'baseado no projeto',
+    footer_made: 'Feito por', support_link: '☕ Apoiar via Pix', privacy_link: 'Privacidade', footer_based: 'baseado no projeto', guides_link: 'Guias', c_guides_h: 'Guias e artigos',
     st_total: 'Valor total — anúncio', st_instant: '💸 Venda imediata (R$)',
     st_gear: 'Equipamentos', st_materials: 'Materiais', st_items: 'Itens no baú',
     st_nlnm: 'Sem anúncio · sem mercado', st_brlpend: '⚠ BRL pendente', st_brlload: 'preço em R$ ainda carregando',
@@ -276,11 +281,11 @@ const I18N = {
     top4_total: v => `Lançando esses 4 agora você recebe ≈ <b>${v}</b> na hora.`,
     liq_alta: 'alta', liq_media: 'média', liq_baixa: 'baixa', liq_nenhuma: 'nenhuma',
     c_about_h: 'O que é o tbhbau?',
-    c_about_p: 'O <b>tbhbau</b> é uma ferramenta gratuita que estima o valor do seu baú e inventário no jogo <b>TBH: Task Bar Hero</b> usando os preços reais do <b>Mercado da Steam</b>. Você sobe o arquivo de save do jogo e, em segundos, vê quanto cada item vale — em <b>reais e dólares</b> —, quanto você recebe vendendo na hora e quais itens compensam mais anunciar. Tudo é processado no seu próprio navegador: o save nunca é enviado para nenhum servidor.',
+    c_about_p: 'O <b>tbhbau</b> é uma ferramenta gratuita que estima o valor do seu baú e inventário no jogo <b>TBH: Task Bar Hero</b> usando os preços reais do <b>Mercado da Steam</b>. Você sobe o arquivo de save do jogo e, em segundos, vê quanto cada item vale (em <b>reais e dólares</b>), quanto você recebe vendendo na hora e quais itens compensam mais anunciar. Tudo é processado no seu próprio navegador: o save nunca é enviado para nenhum servidor.',
     c_how_h: 'Como funciona',
     c_how_p: '<ol><li>Abra o jogo pelo menos uma vez para gerar o save (<code>SaveFile_Live.es3</code>).</li><li>Arraste o arquivo para a área no topo da página (ou clique para escolher).</li><li>O site decifra o save no seu navegador e cruza os itens com uma cópia atualizada dos preços do Mercado Steam.</li><li>Veja o valor total, item a item, e o painel <b>Top 4 pra lançar</b> com as vendas mais lucrativas.</li></ol>',
     c_values_h: 'Anúncio, venda imediata e liquidez',
-    c_values_p: '<p><b>Anúncio</b> é o preço de listagem: o valor mais barato que alguém está pedindo para vender. Você anunciaria por perto disso e <i>esperaria</i> um comprador.</p><p><b>Venda imediata</b> é a maior <b>ordem de compra</b> ativa — o valor que você recebe <i>na hora</i>, batendo na ordem de quem já quer comprar. Costuma ser menor que o anúncio, mas vende instantaneamente.</p><p><b>Liquidez</b> mostra quantas ordens de compra existem: quanto maior, mais fácil vender rápido.</p>',
+    c_values_p: '<p><b>Anúncio</b> é o preço de listagem: o valor mais barato que alguém está pedindo para vender. Você anunciaria por perto disso e <i>esperaria</i> um comprador.</p><p><b>Venda imediata</b> é a maior <b>ordem de compra</b> ativa, o valor que você recebe <i>na hora</i>, batendo na ordem de quem já quer comprar. Costuma ser menor que o anúncio, mas vende instantaneamente.</p><p><b>Liquidez</b> mostra quantas ordens de compra existem: quanto maior, mais fácil vender rápido.</p>',
     c_strategy_h: 'A janela de 4 itens a cada 8 horas',
     c_strategy_p: 'O TBH permite enviar apenas <b>4 itens do jogo para o inventário da Steam a cada 8 horas</b>. Por isso o painel <b>Top 4 pra lançar</b> ordena os itens do seu baú pela <b>venda imediata</b> (o que rende mais na hora), ajudando você a aproveitar cada janela com os itens mais lucrativos primeiro.',
     c_privacy_h: 'Privacidade e segurança',
@@ -324,7 +329,7 @@ const I18N = {
     pix_title: 'Support via Pix ☕', pix_desc: 'Scan the QR in your bank app, or copy the code.',
     pix_copy: 'Copy Pix code', pix_copied: 'Copied ✓',
     footer_1: 'Stash evaluator for <b>TBH: Task Bar Hero</b> · your save is read only in the browser, nothing is sent.',
-    footer_made: 'Made by', support_link: '☕ Support via Pix', privacy_link: 'Privacy', footer_based: 'based on the project',
+    footer_made: 'Made by', support_link: '☕ Support via Pix', privacy_link: 'Privacy', footer_based: 'based on the project', guides_link: 'Guides', c_guides_h: 'Guides & articles',
     st_total: 'Total value — listing', st_instant: '💸 Instant sell (R$)',
     st_gear: 'Equipment', st_materials: 'Materials', st_items: 'Items in stash',
     st_nlnm: 'No listing · no market', st_brlpend: '⚠ BRL pending', st_brlload: 'BRL price still loading',
