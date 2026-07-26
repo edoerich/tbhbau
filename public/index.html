@@ -24,6 +24,8 @@
   #drop code { background:#0a0c10; padding:1px 6px; border-radius:4px; font-size:12px; color:#c7cdd8; }
   .copybtn { margin-top:8px; background:#0a0c10; color:var(--acc); border:1px solid var(--line); border-radius:8px; padding:5px 12px; font:inherit; font-size:12px; cursor:pointer; }
   .copybtn:hover { border-color:var(--acc); }
+  .loaded-bar { display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:10px; padding:8px 12px; background:#13221a; border:1px solid #2f5a30; border-radius:8px; font-size:13px; color:#c7e8c9; }
+  .linkbtn { background:none; border:0; color:var(--acc); cursor:pointer; font:inherit; text-decoration:underline; padding:2px 4px; }
   .summary { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; margin:20px 0; }
   .stat { background:var(--card); border:1px solid var(--line); border-radius:10px; padding:14px; }
   .stat .k { color:var(--mut); font-size:12px; text-transform:uppercase; letter-spacing:.04em; }
@@ -142,6 +144,10 @@
     <span class="badge" data-i18n="drop_badge">🔒 processado localmente · read-only</span>
   </div>
   <input id="file" type="file" accept=".es3" class="hidden">
+  <div id="loadedBar" class="loaded-bar hidden">
+    <span>✓ <span data-i18n="loaded_pre">Save carregado:</span> <b id="loadedName"></b></span>
+    <button id="removeSave" class="linkbtn" type="button" data-i18n="remove_save">remover</button>
+  </div>
   <div id="status" class="note hidden"></div>
 
   <section id="result" class="hidden">
@@ -157,7 +163,6 @@
       </div>
       <input id="q" type="search" data-i18n-ph="q_ph" placeholder="filtrar item…">
       <span class="muted" id="count"></span>
-      <button id="clearSave" class="copybtn hidden" type="button" data-i18n="clear_save" style="margin:0 0 0 auto">🗑️ esquecer save</button>
     </div>
     <table id="tbl">
       <thead><tr>
@@ -354,6 +359,7 @@ const I18N = {
     s_crossing: 'Cruzando o baú com o Mercado Steam…',
     s_error: msg => `Falha ao ler o save: ${msg}. Confira se é o <code>SaveFile_Live.es3</code> do TBH.`,
     s_cached: 'Carregando último save salvo…', clear_save: '🗑️ esquecer save',
+    loaded_pre: 'Save carregado:', remove_save: '🗑️ remover',
     st_net: 'Você recebe (líquido)', st_net_note: 'após taxa ~13%',
     top4_net: v => `≈ ${v} líquido (após taxa Steam)`,
   },
@@ -425,6 +431,7 @@ const I18N = {
     s_crossing: 'Matching your stash with the Steam Market…',
     s_error: msg => `Failed to read the save: ${msg}. Make sure it is the TBH <code>SaveFile_Live.es3</code>.`,
     s_cached: 'Loading last saved file…', clear_save: '🗑️ forget save',
+    loaded_pre: 'Save loaded:', remove_save: '🗑️ remove',
     st_net: 'You receive (net)', st_net_note: 'after ~13% fee',
     top4_net: v => `≈ ${v} net (after Steam fee)`,
   },
@@ -510,7 +517,8 @@ async function handleBytes(bytes, name, fromCache) {
     lastStash = stash;
     render();
     statusEl.classList.add('hidden');
-    $('#clearSave').classList.remove('hidden');
+    $('#loadedName').textContent = name;
+    $('#loadedBar').classList.remove('hidden');
     if (!fromCache) { try { localStorage.setItem(SAVE_KEY, bytesToB64(bytes)); localStorage.setItem(SAVE_NAME_KEY, name); } catch {} }
   } catch (e) {
     console.error(e);
@@ -731,9 +739,13 @@ async function openItemDetail(it) {
   }
 }
 
-$('#clearSave').addEventListener('click', () => {
+$('#removeSave').addEventListener('click', () => {
   try { localStorage.removeItem(SAVE_KEY); localStorage.removeItem(SAVE_NAME_KEY); } catch {}
-  location.reload();
+  lastStash = null;
+  $('#result').classList.add('hidden');
+  $('#loadedBar').classList.add('hidden');
+  statusEl.classList.add('hidden');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 // ── Mercado do TBH: explorador + destaques (visível antes do upload) ──────────
