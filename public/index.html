@@ -99,6 +99,20 @@
   .idet-yhi { top:4px; } .idet-ylo { bottom:4px; }
   footer { max-width:1000px; margin:0 auto; padding:20px; color:var(--mut); font-size:13px; }
   .note { background:#16202b; border:1px solid #244; border-radius:8px; padding:10px 12px; font-size:13px; color:#bcd; margin-top:14px; }
+  .market { max-width:1000px; margin:30px auto 0; padding:0 20px; }
+  .market h2 { font-size:20px; color:var(--acc); margin:0 0 4px; }
+  .market .mkt-sub { font-size:14px; color:var(--mut); margin:0 0 16px; }
+  .highlights { display:grid; grid-template-columns:repeat(auto-fit,minmax(270px,1fr)); gap:12px; margin-bottom:22px; }
+  .hl { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:12px 14px; }
+  .hl h3 { margin:0 0 6px; font-size:14px; }
+  .hl .row { display:flex; align-items:center; gap:8px; padding:4px 2px; cursor:pointer; font-size:13px; border-radius:6px; }
+  .hl .row:hover { background:#10141a; }
+  .hl img { width:22px; height:22px; border-radius:4px; background:#0a0c10; }
+  .hl .nm { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hl .vl { font-variant-numeric:tabular-nums; color:var(--green); font-weight:600; }
+  .mkt-controls { display:flex; gap:10px; align-items:center; margin:6px 0; flex-wrap:wrap; }
+  .mkt-tablewrap { overflow-x:auto; }
+  #mktTbl td:first-child { max-width:280px; }
   .content { max-width:1000px; margin:36px auto 0; padding:0 20px; }
   .content article { margin:24px 0; }
   .content h2 { font-size:18px; color:var(--acc); margin:0 0 8px; }
@@ -157,6 +171,29 @@
       <tbody></tbody>
     </table>
     <div id="extra"></div>
+  </section>
+
+  <section id="market" class="market hidden">
+    <h2 data-i18n="mkt_h">Mercado do TBH</h2>
+    <p class="mkt-sub" data-i18n="mkt_sub">Preços do Mercado Steam para todos os itens negociáveis, atualizados continuamente. Clique num item para ver o order book e o histórico.</p>
+    <div class="highlights" id="highlights"></div>
+    <div class="mkt-controls">
+      <input id="mktSearch" type="search" data-i18n-ph="mkt_search_ph" placeholder="buscar item no mercado…">
+      <span class="muted" id="mktCount"></span>
+    </div>
+    <div class="mkt-tablewrap">
+      <table id="mktTbl">
+        <thead><tr>
+          <th data-ms="name" data-i18n="th_mkt_item">Item</th>
+          <th class="num" data-ms="lowest" data-i18n="th_mkt_lowest">Menor venda</th>
+          <th class="num" data-ms="median" data-i18n="th_mkt_median">Mediana</th>
+          <th class="num" data-ms="vol" data-i18n="th_mkt_vol">Volume 24h</th>
+          <th class="num" data-ms="spread" data-i18n="th_mkt_spread">Spread</th>
+          <th data-ms="buyCount" data-i18n="th_mkt_liq">Liquidez</th>
+        </tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
   </section>
 
   <section class="content">
@@ -263,6 +300,10 @@ const I18N = {
     pix_copy: 'Copiar código Pix', pix_copied: 'Copiado ✓',
     footer_1: 'Avaliador de baú do <b>TBH: Task Bar Hero</b> · seu save é lido só no navegador, nada é enviado.',
     footer_made: 'Feito por', support_link: '☕ Apoiar via Pix', privacy_link: 'Privacidade', footer_based: 'baseado no projeto', guides_link: 'Guias', c_guides_h: 'Guias e artigos',
+    mkt_h: 'Mercado do TBH', mkt_sub: 'Preços do Mercado Steam para todos os itens negociáveis, atualizados continuamente. Clique num item para ver o order book e o histórico.',
+    hl_valuable: '💎 Mais valiosos', hl_traded: '🔥 Mais negociados (24h)', hl_sell: '⚡ Melhores pra vender agora',
+    mkt_search_ph: 'buscar item no mercado…', th_mkt_item: 'Item', th_mkt_lowest: 'Menor venda', th_mkt_median: 'Mediana', th_mkt_vol: 'Volume 24h', th_mkt_spread: 'Spread', th_mkt_liq: 'Liquidez',
+    mkt_count: n => `${n} itens`, mkt_more: n => `+${n} itens (use a busca para encontrar)`,
     st_total: 'Valor total — anúncio', st_instant: '💸 Venda imediata (R$)',
     st_gear: 'Equipamentos', st_materials: 'Materiais', st_items: 'Itens no baú',
     st_nlnm: 'Sem anúncio · sem mercado', st_brlpend: '⚠ BRL pendente', st_brlload: 'preço em R$ ainda carregando',
@@ -330,6 +371,10 @@ const I18N = {
     pix_copy: 'Copy Pix code', pix_copied: 'Copied ✓',
     footer_1: 'Stash evaluator for <b>TBH: Task Bar Hero</b> · your save is read only in the browser, nothing is sent.',
     footer_made: 'Made by', support_link: '☕ Support via Pix', privacy_link: 'Privacy', footer_based: 'based on the project', guides_link: 'Guides', c_guides_h: 'Guides & articles',
+    mkt_h: 'TBH Market', mkt_sub: 'Steam Market prices for every tradable item, updated continuously. Click an item to see its order book and history.',
+    hl_valuable: '💎 Most valuable', hl_traded: '🔥 Most traded (24h)', hl_sell: '⚡ Best to sell now',
+    mkt_search_ph: 'search item in the market…', th_mkt_item: 'Item', th_mkt_lowest: 'Lowest ask', th_mkt_median: 'Median', th_mkt_vol: '24h volume', th_mkt_spread: 'Spread', th_mkt_liq: 'Liquidity',
+    mkt_count: n => `${n} items`, mkt_more: n => `+${n} items (use search to find them)`,
     st_total: 'Total value — listing', st_instant: '💸 Instant sell (R$)',
     st_gear: 'Equipment', st_materials: 'Materials', st_items: 'Items in stash',
     st_nlnm: 'No listing · no market', st_brlpend: '⚠ BRL pending', st_brlload: 'BRL price still loading',
@@ -393,6 +438,7 @@ function applyI18n() {
   document.querySelectorAll('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
   document.querySelectorAll('#langToggle button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
   if (lastStash) render();
+  if (marketItems) { renderHighlights(); renderMarket(); }
 }
 
 const PASSWORD = 'emuMqG3bLYJ938ZDCfieWJ'; // chave ES3 do jogo (pública, embutida nos assets do TBH)
@@ -417,16 +463,20 @@ function setStatus(html, isErr) { statusEl.className = 'note' + (isErr ? ' err' 
 // Se a VM estiver fora, cai no snapshot empacotado (defasado, mas o site não quebra).
 const SNAPSHOT_URL = 'https://api.tbhbau.com.br/data/snapshot.json';
 const SNAPSHOT_FALLBACK = './data/snapshot.seed.json';
+let _snap = null; // cache do snapshot pra sessão (mercado + baú usam o mesmo)
 async function fetchSnapshot() {
+  if (_snap) return _snap;
   try {
     const r = await fetch(SNAPSHOT_URL, { cache: 'no-store' });
     if (!r.ok) throw new Error('HTTP ' + r.status);
-    return await r.json();
+    _snap = await r.json();
   } catch (e) {
     console.warn('snapshot ao vivo indisponível, usando bundle:', e.message);
-    return fetch(SNAPSHOT_FALLBACK).then(r => r.json());
+    _snap = await fetch(SNAPSHOT_FALLBACK).then(r => r.json());
   }
+  return _snap;
 }
+const volNum = v => { const n = parseInt(String(v || '').replace(/[^\d]/g, ''), 10); return Number.isFinite(n) ? n : 0; };
 async function loadTables() {
   if (tables) return tables;
   setStatus(t('s_loading'));
@@ -662,7 +712,7 @@ async function openItemDetail(it) {
   $('#idetName').textContent = it.name;
   $('#idetType').textContent = it.type || '';
   const icon = $('#idetIcon'); if (it.icon) { icon.src = it.icon; icon.style.display = ''; } else icon.style.display = 'none';
-  $('#idetLink').href = it.url;
+  $('#idetLink').href = it.url || `https://steamcommunity.com/market/listings/3678970/${encodeURIComponent(it.hash)}`;
   $('#idetIndicators').innerHTML = '';
   $('#idetBody').innerHTML = `<div class="muted" style="padding:24px;text-align:center">${t('idet_loading')}</div>`;
   itemModal.classList.remove('hidden');
@@ -686,7 +736,60 @@ $('#clearSave').addEventListener('click', () => {
   location.reload();
 });
 
+// ── Mercado do TBH: explorador + destaques (visível antes do upload) ──────────
+let marketItems = null, mktSort = 'vol', mktDir = -1;
+async function initMarket() {
+  try {
+    const snap = await fetchSnapshot();
+    marketItems = (snap.items || []).filter(i => i.hasMarketListing !== false);
+    if (!marketItems.length) return;
+    $('#market').classList.remove('hidden');
+    renderHighlights(); renderMarket();
+  } catch (e) { console.warn('mercado indisponível:', e.message); }
+}
+function hlBlock(title, items, valFn) {
+  return `<div class="hl"><h3>${title}</h3>${items.map(i =>
+    `<div class="row" data-hash="${encodeURIComponent(i.hash)}">${i.icon ? `<img src="${i.icon}" loading="lazy">` : ''}<span class="nm">${i.name}</span><span class="vl">${valFn(i)}</span></div>`).join('')}</div>`;
+}
+function renderHighlights() {
+  if (!marketItems) return;
+  const valuable = marketItems.filter(i => i.brlCents > 0).sort((a, b) => b.brlCents - a.brlCents).slice(0, 6);
+  const traded = marketItems.filter(i => volNum(i.volume) > 0).sort((a, b) => volNum(b.volume) - volNum(a.volume)).slice(0, 6);
+  const toSell = marketItems.filter(i => i.buyCents && i.buyCount).sort((a, b) => b.buyCents - a.buyCents).slice(0, 6);
+  $('#highlights').innerHTML =
+    hlBlock(t('hl_valuable'), valuable, i => moneyBrl(i.brlCents)) +
+    hlBlock(t('hl_traded'), traded, i => fmtQty(volNum(i.volume))) +
+    hlBlock(t('hl_sell'), toSell, i => moneyBrl(i.buyCents));
+}
+function renderMarket() {
+  if (!marketItems) return;
+  const q = $('#mktSearch').value.trim().toLowerCase();
+  let rows = marketItems.map(i => {
+    const lowest = i.brlCents ?? i.minSellCents ?? null;
+    const spread = (i.minSellCents != null && i.buyCents != null) ? i.minSellCents - i.buyCents : null;
+    return { ...i, lowest, median: i.medianCents ?? null, vol: volNum(i.volume), spread };
+  }).filter(i => (i.lowest != null || i.buyCents != null) && (!q || i.name.toLowerCase().includes(q)));
+  rows.sort((a, b) => { const av = a[mktSort], bv = b[mktSort]; const cmp = typeof av === 'string' ? String(av).localeCompare(String(bv)) : ((av ?? -1) - (bv ?? -1)); return cmp * mktDir; });
+  $('#mktCount').textContent = t('mkt_count', rows.length);
+  const view = rows.slice(0, 300);
+  $('#mktTbl tbody').innerHTML = view.map(i => `
+    <tr class="clickable" data-hash="${encodeURIComponent(i.hash)}">
+      <td>${i.icon ? `<img class="ico" src="${i.icon}" loading="lazy"> ` : ''}${i.name}</td>
+      <td class="num">${moneyBrl(i.lowest)}</td>
+      <td class="num">${moneyBrl(i.median)}</td>
+      <td class="num">${i.vol ? fmtQty(i.vol) : '—'}</td>
+      <td class="num">${i.spread != null ? moneyBrl(i.spread) : '—'}</td>
+      <td>${i.liquidez ? `<span class="liq ${i.liquidez}">${t('liq_' + i.liquidez)}</span>` : ''}</td>
+    </tr>`).join('') + (rows.length > view.length ? `<tr><td colspan="6" class="muted" style="text-align:center;padding:10px">${t('mkt_more', rows.length - view.length)}</td></tr>` : '');
+}
+function openByHash(el) { const it = marketItems && marketItems.find(x => x.hash === decodeURIComponent(el.dataset.hash)); if (it) openItemDetail(it); }
+$('#mktSearch').addEventListener('input', renderMarket);
+document.querySelectorAll('#mktTbl th[data-ms]').forEach(th => th.addEventListener('click', () => { const k = th.dataset.ms; mktDir = (mktSort === k) ? -mktDir : -1; mktSort = k; renderMarket(); }));
+$('#mktTbl tbody').addEventListener('click', e => { const tr = e.target.closest('tr[data-hash]'); if (tr) openByHash(tr); });
+$('#highlights').addEventListener('click', e => { const r = e.target.closest('[data-hash]'); if (r) openByHash(r); });
+
 applyI18n(); // aplica o idioma inicial (detectado/salvo) nos textos estáticos
+initMarket(); // carrega o mercado (destaques + explorador) já no início
 
 // recarrega o último save salvo (só no navegador), se houver
 (function () {
