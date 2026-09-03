@@ -82,7 +82,7 @@ export function dedupeItems(items) {
 export const steamUrl = hash => `https://steamcommunity.com/market/listings/${APPID}/${encodeURIComponent(hash)}`;
 
 // Gráfico de linha SVG (estático) do histórico de "menor venda". points: [[t, ask, bid, vol], ...]
-export function chartSvg(points, { w = 640, h = 160, pad = 10 } = {}) {
+export function chartSvg(points, { w = 640, h = 160, pad = 10, fmtDate: fd = fmtDate, alt = 'Histórico de menor venda em reais' } = {}) {
   const pts = (points || []).filter(p => p[1] != null);
   if (pts.length < 2) return '';
   const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
@@ -92,9 +92,9 @@ export function chartSvg(points, { w = 640, h = 160, pad = 10 } = {}) {
   const line = pts.map((p, i) => `${i ? 'L' : 'M'}${sx(p[0]).toFixed(1)},${sy(p[1]).toFixed(1)}`).join(' ');
   const area = `${line} L${sx(maxX).toFixed(1)},${(h - pad).toFixed(1)} L${sx(minX).toFixed(1)},${(h - pad).toFixed(1)} Z`;
   return `<div class="chart-wrap"><div class="chart-yhi">${moneyBrl(maxY)}</div><div class="chart-ylo">${moneyBrl(minY)}</div>
-<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="chart-svg" role="img" aria-label="Histórico de menor venda em reais">
+<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="chart-svg" role="img" aria-label="${alt}">
 <path d="${area}" fill="rgba(102,192,244,.12)" stroke="none"/><path d="${line}" fill="none" stroke="#66c0f4" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
-<div class="chart-x"><span>${fmtDate(minX)}</span><span>${fmtDate(maxX)}</span></div></div>`;
+<div class="chart-x"><span>${fd(minX)}</span><span>${fd(maxX)}</span></div></div>`;
 }
 
 // Variação percentual segura

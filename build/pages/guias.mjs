@@ -1,43 +1,43 @@
-// /guias/ (índice) + /guias/<slug>/ (cada guia; conteúdo em src/content/guias/*.mjs)
+// índice de guias + uma página por guia (conteúdo em src/content/<lang>/guias/*.mjs, pareado por `id`)
 import { page, breadcrumb, adUnit } from '../layout.mjs';
 import { esc } from '../lib.mjs';
 import { cta } from '../ui.mjs';
 
 export function render(ctx) {
-  const { guias } = ctx;
+  const { guias, i } = ctx, R = i.routes;
   const out = [];
-  const bc = breadcrumb([['/', 'Início'], [null, 'Guias']]);
-  out.push({ path: 'guias/index.html', sitemap: { priority: 0.7, changefreq: 'weekly' }, html: page({
-    path: '/guias/', active: '/guias/', updatedAt: ctx.updatedAt, jsonld: [bc.ld],
-    title: 'Guias do TBH: vender no Mercado Steam, estratégias e raridades · tbhbau',
-    description: 'Guias práticos sobre o TBH: Task Bar Hero e o Mercado da Steam: como vender itens, anúncio vs venda imediata, grades e raridades, taxa da Steam e a janela de 4 itens a cada 8 horas.',
+  const bc = breadcrumb(i, [[R.home, i.t('nav_home')], [null, i.t('nav_guides')]]);
+  out.push({ path: R.guides.slice(1) + 'index.html', sitemap: { priority: 0.7, changefreq: 'weekly' }, html: page({
+    i, path: R.guides, alt: ctx.altRoute('guides'), active: 'guides', updatedAt: ctx.updatedAt, jsonld: [bc.ld],
+    title: i.t('guides_title'), description: i.t('guides_desc'),
     body: `
 ${bc.html}
-<h1>Guias do TBH e do Mercado Steam</h1>
-<p class="lead">Tudo o que você precisa para entender e aproveitar ao máximo o valor do seu baú no <b>TBH: Task Bar Hero</b>.</p>
-<div class="grid c2">${guias.map(g => `<a class="card" href="/guias/${g.slug}/"><h3>${esc(g.title)}</h3><p>${esc(g.summary)}</p></a>`).join('')}</div>
-<h2>Dados que acompanham os guias</h2>
-<p>Os guias usam os mesmos números do resto do site: o <a href="/mercado/">mercado completo</a>, as <a href="/itens/">páginas de cada item</a> com histórico e order book, e o <a href="/boletim/">boletim semanal</a> com altas, quedas e melhores vendas.</p>
-${cta()}` }) });
+<h1>${i.t('guides_h1')}</h1>
+<p class="lead">${i.t('guides_lead')}</p>
+<div class="grid c2">${guias.map(g => `<a class="card" href="${R.guides}${g.slug}/"><h3>${esc(g.title)}</h3><p>${esc(g.summary)}</p></a>`).join('')}</div>
+<h2>${i.t('h_guide_data')}</h2>
+<p>${i.t('guide_data_p', R.market, R.items, R.bulletin)}</p>
+${cta(ctx)}` }) });
 
   for (const g of guias) {
-    const bcG = breadcrumb([['/', 'Início'], ['/guias/', 'Guias'], [null, g.short]]);
+    const url = `${R.guides}${g.slug}/`;
+    const bcG = breadcrumb(i, [[R.home, i.t('nav_home')], [R.guides, i.t('nav_guides')], [null, g.short]]);
     const others = guias.filter(x => x !== g);
-    const ld = { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.description, datePublished: g.date, dateModified: g.date, inLanguage: 'pt-BR',
-      author: { '@type': 'Person', name: 'edelrich' }, publisher: { '@type': 'Organization', name: 'tbhbau' }, mainEntityOfPage: `https://tbhbau.com.br/guias/${g.slug}/` };
-    out.push({ path: `guias/${g.slug}/index.html`, sitemap: { priority: 0.7, changefreq: 'monthly' }, html: page({
-      path: `/guias/${g.slug}/`, active: '/guias/', updatedAt: ctx.updatedAt, jsonld: [bcG.ld, ld], ogType: 'article',
+    const ld = { '@context': 'https://schema.org', '@type': 'Article', headline: g.title, description: g.description, datePublished: g.date, dateModified: g.date, inLanguage: i.lang,
+      author: { '@type': 'Person', name: 'edelrich' }, publisher: { '@type': 'Organization', name: 'tbhbau' }, mainEntityOfPage: 'https://tbhbau.com.br' + url };
+    out.push({ path: url.slice(1) + 'index.html', sitemap: { priority: 0.7, changefreq: 'monthly' }, html: page({
+      i, path: url, alt: ctx.guideAltUrl(g.id), active: 'guides', updatedAt: ctx.updatedAt, jsonld: [bcG.ld, ld], ogType: 'article',
       title: `${g.title} · tbhbau`, description: g.description,
       body: `
 ${bcG.html}
 <article class="prose">
 <h1>${esc(g.title)}</h1>
-<p class="muted" style="font-size:13px">Por edelrich · ${new Date(g.date).toLocaleDateString('pt-BR', { timeZone: 'UTC' })}</p>
-${g.body.replace('{{AD}}', adUnit())}
+<p class="muted" style="font-size:13px">${i.t('by', 'edelrich', new Date(g.date).toLocaleDateString(i.L === 'pt' ? 'pt-BR' : 'en-US', { timeZone: 'UTC' }))}</p>
+${g.body.replace('{{AD}}', adUnit(i)).replace(/\{\{([\w-]+)\}\}/g, (_, k) => R[k] || ctx.guideUrl(k) || '#')}
 </article>
-<h2>Leia também</h2>
-<div class="grid c2">${others.map(o => `<a class="card" href="/guias/${o.slug}/"><h3>${esc(o.title)}</h3><p>${esc(o.summary)}</p></a>`).join('')}</div>
-${cta()}` }) });
+<h2>${i.t('h_read_also')}</h2>
+<div class="grid c2">${others.map(o => `<a class="card" href="${R.guides}${o.slug}/"><h3>${esc(o.title)}</h3><p>${esc(o.summary)}</p></a>`).join('')}</div>
+${cta(ctx)}` }) });
   }
   return out;
 }

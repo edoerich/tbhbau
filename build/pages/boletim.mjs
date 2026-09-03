@@ -1,67 +1,62 @@
-// /boletim/ — resumo automático da semana no mercado (regerado a cada build)
+// boletim semanal automático (PT/EN), regerado a cada build
 import { page, breadcrumb, adUnit } from '../layout.mjs';
-import { esc, moneyBrl, fmtQty, fmtInt, fmtPct, fmtDateLong, fmtDateTime, netCents, RARITY_PT, typePt } from '../lib.mjs';
-import { itemLink, deltaSpan, liqSpan, cta } from '../ui.mjs';
+import { fmtQty, netCents } from '../lib.mjs';
+import { itemLink, deltaSpan, liqSpan, cta, priceSpan } from '../ui.mjs';
 
 export function render(ctx) {
-  const { items, histCount } = ctx;
-  const bc = breadcrumb([['/', 'Início'], [null, 'Boletim do mercado']]);
-  const week = fmtDateLong(ctx.now);
-  const movers = items.filter(i => i.d7 != null && i.vol >= 3 && i.lowestBrl >= 20);
-  const ups = [...movers].sort((a, b) => b.d7 - a.d7).slice(0, 10).filter(i => i.d7 > 0);
-  const downs = [...movers].sort((a, b) => a.d7 - b.d7).slice(0, 10).filter(i => i.d7 < 0);
-  const traded = items.filter(i => i.vol > 0).sort((a, b) => b.vol - a.vol).slice(0, 10);
-  const toSell = items.filter(i => i.buyCents && i.buyCount >= 10).sort((a, b) => b.buyCents - a.buyCents).slice(0, 10);
-  const valuable = items.filter(i => i.lowestBrl > 0).sort((a, b) => b.lowestBrl - a.lowestBrl).slice(0, 10);
-  const volTotal = items.reduce((a, i) => a + i.vol, 0);
-  const withVol = items.filter(i => i.vol > 0).length;
-  const withBuy = items.filter(i => i.buyCount > 0).length;
+  const { items, histCount, i } = ctx, R = i.routes;
+  const bc = breadcrumb(i, [[R.home, i.t('nav_home')], [null, i.t('bul_crumb')]]);
+  const week = i.fmtDateLong(ctx.now);
+  const movers = items.filter(x => x.d7 != null && x.vol >= 3 && x.lowestBrl >= 20);
+  const ups = [...movers].sort((a, b) => b.d7 - a.d7).slice(0, 10).filter(x => x.d7 > 0);
+  const downs = [...movers].sort((a, b) => a.d7 - b.d7).slice(0, 10).filter(x => x.d7 < 0);
+  const traded = items.filter(x => x.vol > 0).sort((a, b) => b.vol - a.vol).slice(0, 10);
+  const toSell = items.filter(x => x.buyCents && x.buyCount >= 10).sort((a, b) => b.buyCents - a.buyCents).slice(0, 10);
+  const valuable = items.filter(x => x.lowestBrl > 0).sort((a, b) => b.lowestBrl - a.lowestBrl).slice(0, 10);
   const byType = new Map();
-  for (const i of items) byType.set(i.typeBase, (byType.get(i.typeBase) || 0) + i.vol);
+  for (const x of items) byType.set(x.typeBase, (byType.get(x.typeBase) || 0) + x.vol);
   const topTypes = [...byType.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
-  const upsN = movers.filter(i => i.d7 > 0).length, downsN = movers.filter(i => i.d7 < 0).length;
 
-  const table = (list, cols) => list.length ? `<div class="tablewrap"><table><thead><tr><th class="num">#</th>${cols.map(c => `<th class="${c.num ? 'num' : ''}">${c.th}</th>`).join('')}</tr></thead><tbody>${list.map((i, n) => `<tr><td class="num muted">${n + 1}</td>${cols.map(c => `<td class="${c.num ? 'num' : ''}">${c.td(i)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : '<p class="muted">Ainda não há dados suficientes para esta lista.</p>';
-  const cName = { th: 'Item', td: i => `${itemLink(ctx, i)} <span class="muted" style="font-size:12px">${i.isMaterial ? typePt(i.typeBase) : `${RARITY_PT[i.rarity]} Lv. ${i.lvl}`}</span>` };
-  const cPrice = { th: 'Menor venda', num: true, td: i => moneyBrl(i.lowestBrl) };
-  const cD7 = { th: '7 dias', num: true, td: i => deltaSpan(i.d7) };
-  const cVol = { th: 'Volume 24h', num: true, td: i => fmtQty(i.vol) };
-  const cBuy = { th: 'Venda imediata', num: true, td: i => moneyBrl(i.buyCents) };
-  const cNet = { th: 'Líquido', num: true, td: i => moneyBrl(netCents(i.buyCents)) };
-  const cLiq = { th: 'Liquidez', td: i => liqSpan(i) };
+  const table = (list, cols) => list.length ? `<div class="tablewrap"><table><thead><tr><th class="num">#</th>${cols.map(c => `<th class="${c.num ? 'num' : ''}">${c.th}</th>`).join('')}</tr></thead><tbody>${list.map((x, n) => `<tr><td class="num muted">${n + 1}</td>${cols.map(c => `<td class="${c.num ? 'num' : ''}">${c.td(x)}</td>`).join('')}</tr>`).join('')}</tbody></table></div>` : `<p class="muted">${i.t('empty_list')}</p>`;
+  const cName = { th: i.t('th_item'), td: x => `${itemLink(ctx, x)} <span class="muted" style="font-size:12px">${x.isMaterial ? i.typeName(x.typeBase) : `${i.rarity(x.rarity)} ${i.t('lvl', x.lvl)}`}</span>` };
+  const cPrice = { th: i.t('th_lowest'), num: true, td: x => priceSpan(ctx, x) };
+  const cD7 = { th: i.t('th_d7'), num: true, td: x => deltaSpan(i, x.d7) };
+  const cVol = { th: i.t('th_vol'), num: true, td: x => fmtQty(x.vol) };
+  const cBuy = { th: i.t('th_buy'), num: true, td: x => i.moneySpan(x.buyCents, null) };
+  const cNet = { th: i.t('th_net'), num: true, td: x => i.moneySpan(netCents(x.buyCents), null) };
+  const cLiq = { th: i.t('th_liq'), td: x => liqSpan(i, x) };
+  const upsN = movers.filter(x => x.d7 > 0).length, downsN = movers.filter(x => x.d7 < 0).length;
 
   const body = `
 ${bc.html}
-<h1>Boletim do mercado do TBH</h1>
-<p class="lead">Semana de ${week}. O que subiu, o que caiu, o que mais girou e o que vale mais a pena vender agora no Mercado Steam do TBH: Task Bar Hero, a partir dos dados que coletamos continuamente.</p>
-<p class="updated">Gerado automaticamente com dados de ${fmtDateTime(ctx.updatedAt)}${histCount ? ` e histórico de ${fmtInt(histCount)} itens` : ''}. Regerado diariamente.</p>
+<h1>${i.t('bul_h1')}</h1>
+<p class="lead">${i.t('bul_lead', week)}</p>
+<p class="updated">${i.t('bul_generated', i.fmtDateTime(ctx.updatedAt), histCount ? i.fmtInt(histCount) : null)}</p>
 
-<h2>Resumo</h2>
+<h2>${i.t('h_summary')}</h2>
 <div class="prose">
-<p>Dos ${fmtInt(items.length)} itens acompanhados, ${fmtInt(withVol)} registraram vendas nas últimas 24 horas, num total de ${fmtInt(volTotal)} unidades, e ${fmtInt(withBuy)} têm pelo menos uma ordem de compra ativa. ${topTypes.length ? `Os tipos que mais giraram foram ${topTypes.map(([t, v]) => `${typePt(t, true).toLowerCase()} (${fmtInt(v)})`).join(', ')}.` : ''}</p>
-${movers.length ? `<p>Entre os ${fmtInt(movers.length)} itens com preço acima de R$ 0,20 e vendas recentes, ${fmtInt(upsN)} subiram e ${fmtInt(downsN)} caíram em relação a 7 dias atrás. ${ups[0] ? `A maior alta foi de <a href="${ctx.itemUrl(ups[0])}">${esc(ups[0].name)}</a> (${fmtPct(ups[0].d7)}, agora a ${moneyBrl(ups[0].lowestBrl)})` : ''}${downs[0] ? `${ups[0] ? ' e a maior queda, de' : 'A maior queda foi de'} <a href="${ctx.itemUrl(downs[0])}">${esc(downs[0].name)}</a> (${fmtPct(downs[0].d7)}, a ${moneyBrl(downs[0].lowestBrl)})` : ''}.</p>` : '<p>As variações de 7 dias aparecem assim que o histórico acumular uma semana de leituras.</p>'}
-${toSell[0] ? `<p>Para quem quer vender na hora, a melhor venda imediata com liquidez razoável é <a href="${ctx.itemUrl(toSell[0])}">${esc(toSell[0].name)}</a>, pagando ${moneyBrl(toSell[0].buyCents)} (cerca de ${moneyBrl(netCents(toSell[0].buyCents))} líquidos após a taxa). Lembre que o TBH libera apenas 4 itens a cada 8 horas para a Steam: use o <a href="/avaliador/">avaliador</a> para ranquear os do seu baú.</p>` : ''}
+<p>${i.t('bul_s1', { n: i.fmtInt(items.length), withVol: i.fmtInt(items.filter(x => x.vol > 0).length), volTotal: i.fmtInt(items.reduce((a, x) => a + x.vol, 0)), withBuy: i.fmtInt(items.filter(x => x.buyCount > 0).length), topTypes: topTypes.length ? topTypes.map(([t, v]) => `${i.typeName(t, true).toLowerCase()} (${i.fmtInt(v)})`).join(', ') : null })}</p>
+<p>${movers.length ? i.t('bul_s2', { movers: i.fmtInt(movers.length), upsN: i.fmtInt(upsN), downsN: i.fmtInt(downsN), up: ups[0] && itemLink(ctx, ups[0], { icon: false }), upPct: ups[0] && i.fmtPct(ups[0].d7), upPrice: ups[0] && priceSpan(ctx, ups[0]), down: downs[0] && itemLink(ctx, downs[0], { icon: false }), downPct: downs[0] && i.fmtPct(downs[0].d7), downPrice: downs[0] && priceSpan(ctx, downs[0]) }) : i.t('bul_s2_none')}</p>
+${toSell[0] ? `<p>${i.t('bul_s3', { link: itemLink(ctx, toSell[0], { icon: false }), buy: i.moneySpan(toSell[0].buyCents, null), net: i.moneySpan(netCents(toSell[0].buyCents), null), evalUrl: R.evaluator })}</p>` : ''}
 </div>
 
-<h2>📈 Maiores altas em 7 dias</h2>
-<p class="muted" style="font-size:13px">Itens com menor venda a partir de R$ 0,20 e pelo menos 3 vendas em 24h, para tirar ruído de itens sem mercado.</p>
+<h2>${i.t('h_ups')}</h2>
+<p class="muted" style="font-size:13px">${i.t('ups_note')}</p>
 ${table(ups, [cName, cPrice, cD7, cVol])}
-<h2>📉 Maiores quedas em 7 dias</h2>
+<h2>${i.t('h_downs')}</h2>
 ${table(downs, [cName, cPrice, cD7, cVol])}
-${adUnit()}
-<h2>🔥 Mais negociados nas últimas 24 horas</h2>
+${adUnit(i)}
+<h2>${i.t('h_traded')}</h2>
 ${table(traded, [cName, cVol, cPrice, cLiq])}
-<h2>⚡ Melhores para vender agora</h2>
-<p class="muted" style="font-size:13px">Maior ordem de compra ativa, entre itens com pelo menos 10 ordens.</p>
+<h2>${i.t('h_sell')}</h2>
+<p class="muted" style="font-size:13px">${i.t('sell_note')}</p>
 ${table(toSell, [cName, cBuy, cNet, cLiq])}
-<h2>💎 Mais valiosos</h2>
+<h2>${i.t('h_valuable')}</h2>
 ${table(valuable, [cName, cPrice, cD7, cLiq])}
-<p class="muted" style="font-size:13.5px;margin-top:20px">Como ler estes números: <a href="/guias/anuncio-vs-venda-imediata/">anúncio vs venda imediata</a> · <a href="/guias/grades-raridades/">grades e raridades</a>. Todos os itens no <a href="/mercado/">mercado</a>.</p>
-${cta()}`;
+<p class="muted" style="font-size:13.5px;margin-top:20px">${i.t('bul_read', ctx.guideUrl('anuncio-vs-venda-imediata'), ctx.guideUrl('grades-raridades'), R.market)}</p>
+${cta(ctx)}`;
 
-  return [{ path: 'boletim/index.html', sitemap: { priority: 0.8, changefreq: 'daily' }, html: page({
-    path: '/boletim/', active: '/boletim/', updatedAt: ctx.updatedAt, jsonld: [bc.ld], ogType: 'article',
-    title: `Boletim do mercado do TBH: altas, quedas e melhores vendas (${week}) · tbhbau`,
-    description: `Resumo da semana no Mercado Steam do TBH: Task Bar Hero: maiores altas e quedas em 7 dias, itens mais negociados, melhores vendas imediatas e mais valiosos, com dados atualizados.`,
-    body }) }];
+  return [{ path: R.bulletin.slice(1) + 'index.html', sitemap: { priority: 0.8, changefreq: 'daily' }, html: page({
+    i, path: R.bulletin, alt: ctx.altRoute('bulletin'), active: 'bulletin', updatedAt: ctx.updatedAt, jsonld: [bc.ld], ogType: 'article',
+    title: i.t('bul_title', week), description: i.t('bul_desc'), body }) }];
 }

@@ -1,14 +1,12 @@
 // tbhbau · Avaliador de baú. Lê o save (.es3) 100% no navegador, cruza com o snapshot do mercado.
-// Depende de window.tbh (common.js): moeda global, modal de item, snapshot.
+// Depende de window.tbh (common.js): moeda global, idioma da página, modal de item, snapshot.
 import { decryptES3, readStash } from '/tbh-save.js';
 const { $, $$, ls, moneyBrl, netCents, fetchSnapshot, openItemDetail, on } = window.tbh;
+const LANG = window.tbh.lang; // idioma da página (o build gera /avaliador/ em PT e /en/evaluator/ em EN)
 
 const I18N = {
   pt: {
-    h1: 'Avaliador de baú', sub: 'Suba seu <code>SaveFile_Live.es3</code> e veja o valor do seu baú no Mercado Steam. <b>O save é lido 100% no seu navegador; nada é enviado pra nenhum servidor.</b>',
-    drop_main: 'Arraste o <b>SaveFile_Live.es3</b> aqui, ou <b>clique para escolher</b>',
-    drop_path_pre: 'O save fica em:', copy_path: '📋 copiar caminho', copy_path_done: '✓ copiado!', drop_badge: '🔒 processado localmente · read-only',
-    q_ph: 'filtrar item…', th_item: 'Item', th_kind: 'Tipo', th_qty: 'Qtd', th_listing: 'Anúncio un.', th_instant: 'Venda imediata (R$)', th_liq: 'Liquidez', th_subtotal: 'Subtotal anúncio',
+    copy_path: '📋 copiar caminho', copy_path_done: '✓ copiado!',
     st_total: 'Valor total — anúncio', st_instant: '💸 Venda imediata (R$)', st_gear: 'Equipamentos', st_materials: 'Materiais', st_items: 'Itens no baú',
     st_nlnm: 'Sem anúncio · sem mercado', st_brlpend: '⚠ BRL pendente', st_brlload: 'preço em R$ ainda carregando', st_brlpend_n: n => `${n} itens`,
     count_types: n => `${n} tipos`,
@@ -21,23 +19,15 @@ const I18N = {
     liq_alta: 'alta', liq_media: 'média', liq_baixa: 'baixa', liq_nenhuma: 'nenhuma',
     s_loading: 'Carregando tabelas de itens e snapshot do mercado…', s_reading: f => `Lendo <b>${f}</b>…`, s_decrypting: 'Decifrando o save no navegador…', s_crossing: 'Cruzando o baú com o Mercado Steam…',
     s_error: msg => `Falha ao ler o save: ${msg}. Confira se é o <code>SaveFile_Live.es3</code> do TBH.`, s_cached: 'Carregando último save salvo…',
-    loaded_pre: 'Save carregado:', remove_save: '🗑️ remover', st_net: 'Você recebe (líquido)', st_net_note: 'após taxa ~13%', top4_net: v => `≈ ${v} líquido (após taxa Steam)`,
-    how_h: 'Como funciona', priv_h: 'Privacidade',
-    how_p: '<li>Abra o jogo pelo menos uma vez para gerar o save (<code>SaveFile_Live.es3</code>).</li><li>Arraste o arquivo para a área acima (ou clique para escolher).</li><li>O site decifra o save no seu navegador e cruza os itens com uma cópia atualizada dos preços do Mercado Steam.</li><li>Veja o valor total, item a item, e o painel <b>Top 4 pra lançar</b> com as vendas imediatas mais lucrativas para a sua próxima janela de 4 itens a cada 8 horas.</li>',
-    how_extra: 'Cada linha da tabela abre o detalhe do item, com order book ao vivo e histórico de preço. Os preços de anúncio podem ser vistos em R$ ou US$ pelo seletor da barra; a venda imediata é sempre em R$, porque vem do order book da região Brasil.',
-    priv_p: 'Seu save é lido e decifrado <b>100% no navegador</b> (Web Crypto). Nunca é enviado a nenhum servidor; fica guardado só no seu navegador para recarregar quando você volta, e dá pra remover no botão "remover". O projeto é de código aberto e apenas <b>lê</b> o arquivo: não altera o save nem o jogo. Veja a <a href="/privacidade/">política de privacidade</a>.',
-    priv_more: 'Quer entender os números antes de vender? Leia <a href="/guias/como-vender/">como vender itens do TBH na Steam</a> e <a href="/guias/anuncio-vs-venda-imediata/">anúncio vs venda imediata</a>.',
+    st_net: 'Você recebe (líquido)', st_net_note: 'após taxa ~13%', top4_net: v => `≈ ${v} líquido (após taxa Steam)`,
   },
   en: {
-    h1: 'Stash evaluator', sub: 'Upload your <code>SaveFile_Live.es3</code> and see your stash value on the Steam Market. <b>The save is read 100% in your browser; nothing is sent to any server.</b>',
-    drop_main: 'Drag your <b>SaveFile_Live.es3</b> here, or <b>click to choose</b>',
-    drop_path_pre: 'Your save is located at:', copy_path: '📋 copy path', copy_path_done: '✓ copied!', drop_badge: '🔒 processed locally · read-only',
-    q_ph: 'filter item…', th_item: 'Item', th_kind: 'Type', th_qty: 'Qty', th_listing: 'Listing ea.', th_instant: 'Instant sell (R$)', th_liq: 'Liquidity', th_subtotal: 'Listing subtotal',
+    copy_path: '📋 copy path', copy_path_done: '✓ copied!',
     st_total: 'Total value — listing', st_instant: '💸 Instant sell (R$)', st_gear: 'Equipment', st_materials: 'Materials', st_items: 'Items in stash',
     st_nlnm: 'No listing · no market', st_brlpend: '⚠ BRL pending', st_brlload: 'BRL price still loading', st_brlpend_n: n => `${n} items`,
     count_types: n => `${n} types`,
     disclaimer: d => `Steam Market prices update automatically every ~30 min, <b>not real-time</b>. Check the value on Steam before selling. Last update: ${d}.`,
-    explain: 'Listing = ask price (you wait to sell). Instant sell = highest buy order (sell right now).',
+    explain: 'Listing = ask price (you wait to sell). Instant sell = highest buy order (sell right now, BRL).',
     diag: (dups, other) => `${dups} duplicate refs ignored. ${other} items with unknown name.`, unrecognized: n => `Unrecognized items (${n})`,
     tag_nolisting: 'no listing', price_pending: 'BRL pending', no_order: 'no order', kind_gear: 'gear', kind_material: 'material', kind_other: '?',
     top4_title: '🚀 Top 4 to list now', top4_hint: 'The 4 most profitable items by <b>instant sell</b> (hit the highest buy order and sell now). Use in your 4-items / 8h window.',
@@ -45,30 +35,10 @@ const I18N = {
     liq_alta: 'high', liq_media: 'medium', liq_baixa: 'low', liq_nenhuma: 'none',
     s_loading: 'Loading item tables and market snapshot…', s_reading: f => `Reading <b>${f}</b>…`, s_decrypting: 'Decrypting the save in your browser…', s_crossing: 'Matching your stash with the Steam Market…',
     s_error: msg => `Failed to read the save: ${msg}. Make sure it is the TBH <code>SaveFile_Live.es3</code>.`, s_cached: 'Loading last saved file…',
-    loaded_pre: 'Save loaded:', remove_save: '🗑️ remove', st_net: 'You receive (net)', st_net_note: 'after ~13% fee', top4_net: v => `≈ ${v} net (after Steam fee)`,
-    how_h: 'How it works', priv_h: 'Privacy',
-    how_p: '<li>Open the game at least once to generate the save (<code>SaveFile_Live.es3</code>).</li><li>Drag the file onto the area above (or click to choose it).</li><li>The site decrypts the save in your browser and matches items against an up-to-date copy of Steam Market prices.</li><li>See the total value, item by item, and the <b>Top 4 to list</b> panel with the most profitable instant sells for your next 4-items-every-8-hours window.</li>',
-    how_extra: 'Each table row opens the item detail, with a live order book and price history. Listing prices can be shown in R$ or US$ with the toggle in the bar; instant sell is always in R$ because it comes from the Brazil-region order book.',
-    priv_p: 'Your save is read and decrypted <b>100% in the browser</b> (Web Crypto). It is never sent to any server; it is kept only in your browser so it reloads when you come back, and you can remove it with the "remove" button. The project is open source and only <b>reads</b> the file: it never changes your save or the game. See the <a href="/privacidade/">privacy policy</a>.',
-    priv_more: 'Want to understand the numbers before selling? Read <a href="/guias/como-vender/">how to sell TBH items on Steam</a> and <a href="/guias/anuncio-vs-venda-imediata/">listing vs instant sell</a> (in Portuguese).',
+    st_net: 'You receive (net)', st_net_note: 'after ~13% fee', top4_net: v => `≈ ${v} net (after Steam fee)`,
   },
 };
-let LANG = ls.get('lang') || ((navigator.language || 'pt').toLowerCase().startsWith('pt') ? 'pt' : 'en');
-if (LANG !== window.tbh.lang) window.tbh.setLang(LANG, false); // só persiste quando o visitante clica no seletor
 const t = (k, ...a) => { const v = (I18N[LANG] && I18N[LANG][k] != null) ? I18N[LANG][k] : I18N.pt[k] ?? k; return typeof v === 'function' ? v(...a) : v; };
-function applyI18n() {
-  document.documentElement.lang = LANG === 'pt' ? 'pt-BR' : 'en';
-  $$('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
-  $$('[data-i18n-html]').forEach(el => el.innerHTML = t(el.dataset.i18nHtml));
-  $$('[data-i18n-ph]').forEach(el => el.placeholder = t(el.dataset.i18nPh));
-  $$('#langToggle button').forEach(b => b.classList.toggle('on', b.dataset.lang === LANG));
-  if (lastStash) render();
-}
-const langToggle = $('#langToggle');
-if (langToggle) langToggle.addEventListener('click', e => {
-  const b = e.target.closest('button[data-lang]'); if (!b) return;
-  LANG = b.dataset.lang; window.tbh.setLang(LANG); applyI18n();
-});
 
 const PASSWORD = 'emuMqG3bLYJ938ZDCfieWJ'; // chave ES3 do jogo (pública, embutida nos assets do TBH)
 const drop = $('#drop'), fileInput = $('#file'), statusEl = $('#status');
@@ -209,7 +179,6 @@ $('#removeSave').addEventListener('click', () => {
 });
 on('cur', () => { if (lastStash) render(); });
 
-applyI18n();
 (function () { // recarrega o último save salvo (só no navegador), se houver
   const b64 = ls.get(SAVE_KEY);
   if (b64) { try { handleBytes(b64ToBytes(b64), ls.get(SAVE_NAME_KEY) || 'save', true); } catch { ls.del(SAVE_KEY); } }

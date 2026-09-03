@@ -1,11 +1,12 @@
 // Build estático do tbhbau (zero deps): node build.mjs [--offline]
 // Lê o snapshot do mercado (API ao vivo → public/data/snapshot.json → seed) e o resumo do histórico (API),
-// e gera dist/ com: home, mercado, itens, uma página por item e por tipo, avaliador, guias, boletim,
-// páginas institucionais, sitemap, robots, redirects e assets. O Cloudflare Pages roda isso a cada deploy.
+// e gera dist/ em DOIS idiomas (PT em / e EN em /en/) com: home, mercado, itens, uma página por item e por tipo,
+// avaliador, guias, boletim, páginas institucionais, sitemap, robots, redirects e assets. O Cloudflare Pages roda isso no deploy.
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { API_BASE, SITE, slugify, parseItem, dedupeItems, pct } from './build/lib.mjs';
+import { LANGS, ROUTES, mk } from './build/i18n.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 const PUB = path.join(ROOT, 'public'), SRC = path.join(ROOT, 'src'), DIST = path.join(ROOT, 'dist');
@@ -34,7 +35,7 @@ if (!OFFLINE) { try { hist = await fetchJson(`${API_BASE}/api/history-summary`, 
 const H = (hist && hist.items) || {};
 
 // ── 2. itens enriquecidos ──
-const raw = dedupeItems(snap.items).filter(i => i.hash && i.name && i.hasMarketListing !== false);
+const raw = dedupeItems(snap.items).filter(x => x.hash && x.name && x.hasMarketListing !== false);
 const used = new Set();
 const items = raw.map(parseItem).map(it => {
   let slug = slugify(it.hash), n = 2; while (used.has(slug)) slug = `${slugify(it.hash)}-${n++}`; used.add(slug);
@@ -46,7 +47,7 @@ const items = raw.map(parseItem).map(it => {
   const ad = indexable && h && h.n >= 10;
   return { ...it, slug, h, d7, d30, indexable, ad };
 });
-log(`itens: ${items.length} (dedup de ${snap.items.length}), indexáveis ${items.filter(i => i.indexable).length}, com anúncio ${items.filter(i => i.ad).length}`);
+log(`itens: ${items.length} (dedup de ${snap.items.length}), indexáveis ${items.filter(x => x.indexable).length}, com anúncio ${items.filter(x => x.ad).length}`);
 
 const types = new Map();
 for (const it of items) { if (!types.has(it.typeBase)) types.set(it.typeBase, []); types.get(it.typeBase).push(it); }
@@ -54,15 +55,32 @@ for (const list of types.values()) list.sort((a, b) => (b.lowestBrl ?? -1) - (a.
 const byFamily = new Map();
 for (const it of items) { if (!byFamily.has(it.family)) byFamily.set(it.family, []); byFamily.get(it.family).push(it); }
 
-const loadDir = async dir => { const out = []; for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.mjs')).sort()) out.push((await import(pathToFileURL(path.join(dir, f)).href)).default); return out; };
+// ── conteúdo por idioma (guias pareados por id; páginas por key) ──
+const loadDir = async dir => { const out = []; if (!fs.existsSync(dir)) return out; for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.mjs')).sort()) out.push((await import(pathToFileURL(path.join(dir, f)).href)).default); return out; };
 const GUIA_ORDER = ['como-vender', 'anuncio-vs-venda-imediata', 'grades-raridades'];
-const guias = (await loadDir(path.join(SRC, 'content', 'guias'))).sort((a, b) => (GUIA_ORDER.indexOf(a.slug) + 1 || 99) - (GUIA_ORDER.indexOf(b.slug) + 1 || 99));
-const paginas = (await import(pathToFileURL(path.join(SRC, 'content', 'paginas', 'index.mjs')).href)).default;
+const PAGE_KEY = { sobre: 'about', contato: 'contact', termos: 'terms', privacidade: 'privacy' };
+const content = {};
+for (const L of LANGS) {
+  const base = L === 'pt' ? path.join(SRC, 'content') : path.join(SRC, 'content', 'en');
+  const guias = (await loadDir(path.join(base, 'guias'))).map(g => ({ ...g, id: g.id || g.slug }))
+    .sort((a, b) => (GUIA_ORDER.indexOf(a.id) + 1 || 99) - (GUIA_ORDER.indexOf(b.id) + 1 || 99));
+  const paginas = ((await import(pathToFileURL(path.join(base, 'paginas', 'index.mjs')).href)).default).map(p => ({ ...p, key: p.key || PAGE_KEY[p.slug] }));
+  content[L] = { guias, paginas };
+}
+const guideUrlIn = (L, id) => { const g = content[L].guias.find(x => x.id === id); return g ? `${ROUTES[L].guides}${g.slug}/` : null; };
 
-const ctx = {
-  items, types, byFamily, guias, paginas, updatedAt, now: Date.now(), histCount: hist ? hist.count : 0,
-  typeSlug: t => slugify(t), typeUrl: t => `/tipo/${slugify(t)}/`, itemUrl: it => `/item/${it.slug}/`,
-};
+function makeCtx(L) {
+  const i = mk(L), other = L === 'pt' ? 'en' : 'pt';
+  return {
+    L, i, items, types, byFamily, updatedAt, now: Date.now(), histCount: hist ? hist.count : 0,
+    vk: L === 'en' ? 'usdCents' : 'lowestBrl', // chave de "valor" p/ ranquear: EN mostra US$, PT mostra R$
+    guias: content[L].guias, paginas: content[L].paginas,
+    altRoute: k => ROUTES[other][k],
+    typeSlug: t => slugify(t), typeUrl: t => `${ROUTES[L].type}${slugify(t)}/`, typeAltUrl: t => `${ROUTES[other].type}${slugify(t)}/`,
+    itemUrl: it => `${ROUTES[L].item}${it.slug}/`, itemAltUrl: it => `${ROUTES[other].item}${it.slug}/`,
+    guideUrl: id => guideUrlIn(L, id), guideAltUrl: id => guideUrlIn(other, id),
+  };
+}
 
 // ── 3. dist: limpa e copia assets ──
 fs.rmSync(DIST, { recursive: true, force: true });
@@ -72,7 +90,7 @@ const copy = (from, to) => { fs.mkdirSync(path.dirname(to), { recursive: true })
 for (const f of ['tbh-save.js', 'pix-qr.svg', 'ads.txt']) if (fs.existsSync(path.join(PUB, f))) copy(path.join(PUB, f), path.join(DIST, f));
 for (const f of ['snapshot.seed.json', 'tbh-itemtable.json', 'tbh-itemnames.json']) copy(path.join(PUB, 'data', f), path.join(DIST, 'data', f));
 for (const f of ['site.css', 'common.js', 'avaliador.js']) copy(path.join(SRC, f), path.join(DIST, 'assets', f));
-fs.writeFileSync(path.join(DIST, 'data', 'items-index.json'), JSON.stringify(Object.fromEntries(items.map(i => [i.hash, i.slug]))));
+fs.writeFileSync(path.join(DIST, 'data', 'items-index.json'), JSON.stringify(Object.fromEntries(items.map(x => [x.hash, x.slug]))));
 fs.writeFileSync(path.join(DIST, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#66c0f4"/><stop offset="1" stop-color="#8be3ff"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#g)"/><text x="32" y="44" font-family="system-ui,Segoe UI,Roboto,sans-serif" font-size="36" font-weight="900" text-anchor="middle" fill="#06121c">B</text></svg>`);
 fs.writeFileSync(path.join(DIST, '_redirects'), [
   '/index.html / 301', '/guias.html /guias/ 301', '/privacidade.html /privacidade/ 301',
@@ -81,21 +99,27 @@ fs.writeFileSync(path.join(DIST, '_redirects'), [
   '/guia-grades-raridades /guias/grades-raridades/ 301', '/guia-grades-raridades.html /guias/grades-raridades/ 301', ''].join('\n'));
 fs.writeFileSync(path.join(DIST, 'robots.txt'), `User-agent: *\nAllow: /\nSitemap: ${SITE}/sitemap.xml\n`);
 
-// ── 4. páginas ──
+// ── 4. páginas (PT e EN) ──
 const gens = ['home', 'avaliador', 'mercado', 'itens', 'item', 'boletim', 'guias', 'paginas'];
+const mods = {};
+for (const g of gens) mods[g] = await import(pathToFileURL(path.join(ROOT, 'build', 'pages', `${g}.mjs`)).href);
 const urls = [];
 let count = 0;
-for (const g of gens) {
-  const mod = await import(pathToFileURL(path.join(ROOT, 'build', 'pages', `${g}.mjs`)).href);
-  const pages = mod.render(ctx);
-  for (const p of pages) {
-    const f = path.join(DIST, p.path);
-    fs.mkdirSync(path.dirname(f), { recursive: true });
-    fs.writeFileSync(f, p.html);
-    count++;
-    if (p.sitemap) urls.push({ loc: SITE + '/' + p.path.replace(/index\.html$/, ''), ...p.sitemap });
+for (const L of LANGS) {
+  const ctx = makeCtx(L);
+  const per = [];
+  for (const g of gens) {
+    const pages = mods[g].render(ctx);
+    for (const p of pages) {
+      const f = path.join(DIST, p.path);
+      fs.mkdirSync(path.dirname(f), { recursive: true });
+      fs.writeFileSync(f, p.html);
+      count++;
+      if (p.sitemap) urls.push({ loc: SITE + '/' + p.path.replace(/index\.html$/, ''), ...p.sitemap });
+    }
+    per.push(`${g} ${pages.length}`);
   }
-  log(`${g}: ${pages.length} página(s)`);
+  log(`${L}: ${per.join(', ')}`);
 }
 const today = new Date().toISOString().slice(0, 10);
 fs.writeFileSync(path.join(DIST, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.map(u => `  <url><loc>${u.loc}</loc><lastmod>${today}</lastmod><changefreq>${u.changefreq}</changefreq><priority>${u.priority.toFixed(1)}</priority></url>`).join('\n')}\n</urlset>\n`);
