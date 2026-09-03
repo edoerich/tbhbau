@@ -1,31 +1,41 @@
-# tbhbau — Avaliador de baú do TBH: Task Bar Hero
+# tbhbau — o Mercado Steam do TBH: Task Bar Hero
 
-Site gratuito que lê o seu save do **TBH: Task Bar Hero** e mostra o valor do baú no **Mercado da Steam**
-em **R$ e US$**, com o preço de **venda imediata** (maior ordem de compra) e os **4 melhores itens pra lançar**
-(mecânica de 4 itens a cada 8h).
+Site independente e gratuito sobre a economia do **TBH: Task Bar Hero** no Mercado da Comunidade Steam:
+preços, histórico e liquidez de todos os itens negociáveis, boletim semanal, guias e um **avaliador de baú**
+que lê o save do jogo **100% no navegador** (nada é enviado a nenhum servidor).
 
-🔒 **Privacidade:** o save é lido **100% no navegador** (Web Crypto). Nada é enviado a nenhum servidor.
+Produção: **https://tbhbau.com.br** · API/dados: `https://api.tbhbau.com.br`
 
 ## Arquitetura
 
-- **Frontend estático** (`index.html`, `tbh-save.js`): decifra o `.es3`, cruza com o snapshot e calcula tudo no cliente.
-- **Snapshot global** (`data/snapshot.json`): preços (USD/BRL) + ordens de compra dos ~742 itens. Igual pra todos.
-- **Worker** (`worker.mjs`): roda numa VM e mantém o `snapshot.json` fresco, consultando os endpoints
-  públicos da Steam em rotação gentil (respeitando rate-limit). Zero chamadas à Steam por usuário.
-- `server.mjs`: servidor local pra desenvolvimento (serve o estático + um proxy de orderbook opcional).
+```
+worker.mjs   (VM)  → consulta a Steam em rotação gentil e mantém public/data/snapshot.json + public/data/history/<item>.json
+server.mjs   (VM)  → serve o snapshot com CORS + /api/item (order book ao vivo) + /api/history + /api/history-summary
+build.mjs    (CI)  → gera o site estático em dist/ a partir do snapshot + histórico (Cloudflare Pages roda no deploy)
+src/         → CSS e JS do cliente (common.js: moeda, modal de item, tabelas; avaliador.js: leitura do save)
+src/content/ → guias e páginas institucionais (módulos .mjs com HTML)
+build/       → layout, componentes e um gerador por seção (home, mercado, itens/tipo, item, boletim, guias, páginas)
+public/      → assets copiados como estão (tbh-save.js, pix-qr.svg, ads.txt, data/*.json)
+```
+
+Páginas geradas: home, `/mercado/`, `/itens/`, `/tipo/<tipo>/` (26), `/item/<slug>/` (uma por item, ~900),
+`/avaliador/`, `/guias/` + 3 guias, `/boletim/`, `/sobre/`, `/contato/`, `/termos/`, `/privacidade/`,
+`sitemap.xml`, `robots.txt`, `_redirects` (URLs antigas → novas).
 
 ## Rodar local
 
 ```bash
-node server.mjs        # http://localhost:5270
-node worker.mjs        # atualiza data/snapshot.json (rotação contínua)
+node build.mjs                      # gera dist/ (usa a API ao vivo; --offline usa só public/data)
+STATIC_DIR=dist node server.mjs     # http://localhost:5270 servindo o build
+node worker.mjs                     # (opcional) atualiza public/data/snapshot.json em rotação contínua
 ```
 
 ## Deploy
 
-- **Site:** Cloudflare Pages (estático, sem build). Output: raiz do repositório.
-- **Worker:** VM (ex.: Oracle Cloud Free) rodando `node worker.mjs`, servindo `snapshot.json` com CORS;
-  o frontend aponta `SNAPSHOT_URL` (em `index.html`) pra essa URL.
+- **Site:** Cloudflare Pages. Build command `node build.mjs`, output directory `dist`, Node 20 (`.node-version`).
+  Um *Deploy Hook* chamado por cron diário na VM regera as páginas com dados frescos.
+- **Worker + API:** VM (Oracle Cloud Free) com dois serviços systemd (`tbhbau-worker`, `tbhbau-api`).
+  Após `git push`: `ssh VM; cd ~/tbhbau && git pull && sudo systemctl restart tbhbau-worker tbhbau-api`.
 
 ## Créditos
 
