@@ -7,7 +7,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-const PUB = path.join(ROOT, 'public'); // arquivos estáticos do site (deploy do Cloudflare Pages)
+const PUB = path.join(ROOT, 'public'); // dados do worker (snapshot.json + history/) — na VM é também o que se serve
+// Pasta servida como site: STATIC_DIR=dist pra ver o build local (node build.mjs); padrão public/ (VM/API)
+const STATIC = path.resolve(ROOT, process.env.STATIC_DIR || 'public');
 const PORT = Number(process.env.PORT || 5270);
 const HOST = process.env.HOST || '127.0.0.1'; // local: só localhost; na VM use HOST=0.0.0.0
 const APPID = 3678970;
@@ -47,7 +49,9 @@ async function fetchOrderbook(hash) {
   if (res.status === 429) throw Object.assign(new Error('rate-limited'), { code: 429 });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const j = await res.json();
-  const d = (j && j.success && j.data) ? j.data : {};
+  // Steam mudou o envelope em ago/2026: {data:{success,data}} (antes era {success,data}); aceita os dois
+  const env = (j && j.data && typeof j.data.success !== "undefined") ? j.data : j;
+  const d = (env && env.success && env.data) ? env.data : {};
   const buyCount = d.cBuyOrders || 0;
   const data = {
     hash,
@@ -102,14 +106,66 @@ http.createServer(async (req, res) => {
     });
   }
 
-  // ── estáticos (servidos de public/) ──
+  // ── API: resumo do histórico de TODOS os itens (usado pelo build estático) ──
+  // Por hash: n pontos, primeiro/último ts, série dos últimos 30 dias reamostrada (≤60 pts) e
+  // estatísticas de 7d/30d (menor venda no início da janela, mín, máx, volume médio). Cache 10 min.
+  if (u.pathname === '/api/history-summary') {
+    try { return sendJson(res, 200, await historySummary()); }
+    catch (e) { return sendJson(res, 500, { error: e.message }); }
+  }
+
+  // ── snapshot ao vivo (dados do worker) sempre de public/, mesmo quando STATIC_DIR=dist ──
+  if (u.pathname === '/data/snapshot.json' || u.pathname.startsWith('/data/history/')) {
+    return serveFile(res, path.join(PUB, path.normalize(decodeURIComponent(u.pathname)).replace(/^(\.\.[/\\])+/, '')), PUB);
+  }
+
+  // ── estáticos (site) ──
   let p = decodeURIComponent(u.pathname);
-  if (p === '/') p = '/index.html';
-  const file = path.join(PUB, path.normalize(p).replace(/^(\.\.[/\\])+/, ''));
-  if (!file.startsWith(PUB)) { res.writeHead(403); return res.end('forbidden'); }
+  if (p.endsWith('/')) p += 'index.html';
+  let file = path.join(STATIC, path.normalize(p).replace(/^(\.\.[/\\])+/, ''));
+  if (!file.startsWith(STATIC)) { res.writeHead(403); return res.end('forbidden'); }
+  // imita o Cloudflare Pages: /x → /x/index.html ou /x.html
+  if (!path.extname(file)) { if (fs.existsSync(file + '.html')) file += '.html'; else if (fs.existsSync(path.join(file, 'index.html'))) file = path.join(file, 'index.html'); }
+  serveFile(res, file, STATIC);
+}).listen(PORT, HOST, () => console.log(`tbhbau server em ${HOST}:${PORT} (site: ${STATIC})`));
+
+function serveFile(res, file, root) {
+  if (!file.startsWith(root)) { res.writeHead(403); return res.end('forbidden'); }
   fs.readFile(file, (err, buf) => {
     if (err) { res.writeHead(404); return res.end('not found'); }
     res.writeHead(200, { 'Content-Type': (TYPES[path.extname(file)] || 'application/octet-stream') + '; charset=utf-8' });
     res.end(buf);
   });
-}).listen(PORT, HOST, () => console.log(`tbhbau server em ${HOST}:${PORT}`));
+}
+
+let _hs = null; // { at, data }
+const HS_TTL_MS = 10 * 60 * 1000;
+async function historySummary() {
+  if (_hs && Date.now() - _hs.at < HS_TTL_MS) return _hs.data;
+  const dir = path.join(PUB, 'data', 'history');
+  const items = {};
+  let files = [];
+  try { files = await fs.promises.readdir(dir); } catch { files = []; }
+  const now = Date.now(), D7 = now - 7 * 864e5, D30 = now - 30 * 864e5;
+  const stats = pts => {
+    const asks = pts.map(p => p[1]).filter(v => v != null);
+    const vols = pts.map(p => p[3]).filter(v => v != null);
+    if (!asks.length) return null;
+    return { ask0: asks[0], min: Math.min(...asks), max: Math.max(...asks),
+      volAvg: vols.length ? Math.round(vols.reduce((a, b) => a + b, 0) / vols.length) : null, n: pts.length };
+  };
+  for (const f of files) {
+    if (!f.endsWith('.json')) continue;
+    let pts;
+    try { pts = JSON.parse(await fs.promises.readFile(path.join(dir, f), 'utf8')); } catch { continue; }
+    if (!Array.isArray(pts) || !pts.length) continue;
+    const hash = Buffer.from(f.slice(0, -5), 'base64url').toString('utf8');
+    const p30 = pts.filter(p => p[0] >= D30), p7 = pts.filter(p => p[0] >= D7);
+    const step = Math.max(1, Math.ceil(p30.length / 60));
+    const series = p30.filter((_, i) => i % step === 0 || i === p30.length - 1);
+    items[hash] = { n: pts.length, first: pts[0][0], last: pts[pts.length - 1][0], series, s7: stats(p7), s30: stats(p30) };
+  }
+  const data = { generatedAt: now, count: Object.keys(items).length, items };
+  _hs = { at: now, data };
+  return data;
+}

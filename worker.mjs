@@ -73,7 +73,9 @@ async function fetchOrderbook(hash) {
   const qp = encodeURIComponent(JSON.stringify([APPID, hash]));
   const j = await steamJson(`https://steamcommunity.com/market/orderbook?q=Load&qp=${qp}`,
     { Referer: `https://steamcommunity.com/market/listings/${APPID}/${encodeURIComponent(hash)}` });
-  const d = (j && j.success && j.data) ? j.data : {};
+  // Steam mudou o envelope em ago/2026: {data:{success,data}} (antes era {success,data}); aceita os dois
+  const env = (j && j.data && typeof j.data.success !== "undefined") ? j.data : j;
+  const d = (env && env.success && env.data) ? env.data : {};
   return { buyCents: d.amtMaxBuyOrder ?? null, minSellCents: d.amtMinSellOrder ?? null,
     buyCount: d.cBuyOrders || 0, currency: d.eCurrency || null, liquidez: classifyLiquidez(d.cBuyOrders || 0) };
 }
@@ -100,6 +102,13 @@ async function main() {
     try { const old = JSON.parse(fs.readFileSync(path.join(DATA, 'market-snapshot.json'), 'utf8'));
       snap = { appid: APPID, currencies: ['usd', 'brl'], symbols: { usd: '$', brl: 'R$' }, items: old.items, byHash: {} }; }
     catch { snap = { appid: APPID, currencies: ['usd', 'brl'], symbols: { usd: '$', brl: 'R$' }, items: [], byHash: {} }; }
+  }
+  // Deduplica por hash (versões antigas acumularam entradas repetidas): fica com a mais completa
+  {
+    const score = i => ['brlCents', 'buyCents', 'medianCents', 'minSellCents', 'volume'].reduce((a, k) => a + (i[k] != null ? 1 : 0), 0);
+    const by = new Map();
+    for (const it of snap.items) { const ex = by.get(it.hash); if (!ex || score(it) > score(ex)) by.set(it.hash, it); }
+    if (by.size !== snap.items.length) { log(`dedup: ${snap.items.length} → ${by.size} itens`); snap.items = [...by.values()]; }
   }
   const idx = new Map(snap.items.map(it => [it.hash, it]));
   // SKIP_LISTINGS=1: pula a busca de catálogo USD e usa o seed (pra testar a rotação rápido)
