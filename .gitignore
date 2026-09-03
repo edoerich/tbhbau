@@ -10,3 +10,6 @@ data/app.log
 public/data/snapshot.json
 # série temporal por item gravada pelo worker na VM
 public/data/history/
+
+# saída do build estático (node build.mjs) — o Cloudflare Pages gera na hora do deploy
+dist/
