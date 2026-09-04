@@ -43,7 +43,7 @@ export function render(ctx) {
 <div class="grid c3">
   ${hlBlock(ctx, i.t('hl_valuable'), valuable, x => priceSpan(ctx, x))}
   ${hlBlock(ctx, i.t('hl_traded'), traded, x => fmtQty(x.vol))}
-  ${hlBlock(ctx, i.t('hl_sell'), toSell, x => i.moneySpan(x.buyCents, null))}
+  ${hlBlock(ctx, i.t('hl_sell'), toSell, x => i.moneySpan(x.buyCents, null), { block: 'green' })}
   ${hlBlock(ctx, i.t('hl_ups'), ups, x => i.fmtPct(x.d7))}
   ${hlBlock(ctx, i.t('hl_downs'), downs, x => i.fmtPct(x.d7), { cls: 'down' })}
 </div>

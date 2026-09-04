@@ -41,6 +41,8 @@ ${hreflang}
 ${noindex ? '<meta name="robots" content="noindex,follow">' : ''}
 <meta property="og:type" content="${ogType}"><meta property="og:site_name" content="tbhbau"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(description)}"><meta property="og:url" content="${canonical}"><meta property="og:locale" content="${L === 'pt' ? 'pt_BR' : 'en_US'}">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Nunito+Sans:ital,wght@0,400;0,600;0,700;0,800;1,400&family=JetBrains+Mono:wght@500;700&display=swap">
 <link rel="stylesheet" href="/assets/site.css">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${AD_CLIENT}" crossorigin="anonymous"></script>
 ${ld}

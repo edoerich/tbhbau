@@ -1,7 +1,7 @@
 // Uma página estática por item (PT/EN): preço, texto gerado, histórico (SVG), order book ao vivo (JS), relacionados.
 import { page, breadcrumb, adUnit } from '../layout.mjs';
 import { esc, moneyBrl, money, fmtQty, netCents, RARITY_PT, steamUrl, chartSvg } from '../lib.mjs';
-import { itemLink, rarityDot, deltaSpan, priceSpan } from '../ui.mjs';
+import { itemLink, rarityDot, deltaSpan, priceSpan, slot } from '../ui.mjs';
 
 export function render(ctx) {
   const { items, byFamily, types, i } = ctx, R = i.routes;
@@ -48,7 +48,7 @@ export function render(ctx) {
     const body = `
 ${bc.html}
 <div class="item-head">
-  ${it.icon ? `<img src="${esc(it.icon)}" alt="${esc(it.name)}" width="72" height="72">` : ''}
+  ${slot(it, 'lg')}
   <div>
     <h1>${esc(it.name)}</h1>
     <div class="item-meta">${rarityDot(i, it)}<span>${it.isMaterial ? esc(tipo) : i.t('item_meta_eq', o.rarity, `<a href="${ctx.typeUrl(it.typeBase)}">${esc(tipo)}</a>`, it.lvl)}</span><span>·</span><a href="${steamUrl(it.hash)}" target="_blank" rel="noopener">${i.t('modal_steam')}</a></div>

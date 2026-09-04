@@ -91,7 +91,8 @@ for (const f of ['tbh-save.js', 'pix-qr.svg', 'ads.txt']) if (fs.existsSync(path
 for (const f of ['snapshot.seed.json', 'tbh-itemtable.json', 'tbh-itemnames.json']) copy(path.join(PUB, 'data', f), path.join(DIST, 'data', f));
 for (const f of ['site.css', 'common.js', 'avaliador.js']) copy(path.join(SRC, f), path.join(DIST, 'assets', f));
 fs.writeFileSync(path.join(DIST, 'data', 'items-index.json'), JSON.stringify(Object.fromEntries(items.map(x => [x.hash, x.slug]))));
-fs.writeFileSync(path.join(DIST, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#66c0f4"/><stop offset="1" stop-color="#8be3ff"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#g)"/><text x="32" y="44" font-family="system-ui,Segoe UI,Roboto,sans-serif" font-size="36" font-weight="900" text-anchor="middle" fill="#06121c">B</text></svg>`);
+// favicon: aba vinho chanfrada com "B" em blocos (pixel), como a marca na barra
+fs.writeFileSync(path.join(DIST, 'favicon.svg'), `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" shape-rendering="crispEdges"><path d="M2 0h12l2 2v12l-2 2H2l-2-2V2z" fill="#7a1d1d"/><path d="M2 0h12l2 2v1H0V2z" fill="#a33232"/><path d="M0 13h16v1l-2 2H2l-2-2z" fill="#4a0f0f"/><path fill="#f0c452" d="M5 3h5v1h1v1h1v2h-1v1h1v3h-1v1h-1v1H5zM7 5v2h3V5zm0 4v2h3V9z"/></svg>`);
 fs.writeFileSync(path.join(DIST, '_redirects'), [
   '/index.html / 301', '/guias.html /guias/ 301', '/privacidade.html /privacidade/ 301',
   '/guia-como-vender /guias/como-vender/ 301', '/guia-como-vender.html /guias/como-vender/ 301',

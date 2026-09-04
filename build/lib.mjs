@@ -93,7 +93,7 @@ export function chartSvg(points, { w = 640, h = 160, pad = 10, fmtDate: fd = fmt
   const area = `${line} L${sx(maxX).toFixed(1)},${(h - pad).toFixed(1)} L${sx(minX).toFixed(1)},${(h - pad).toFixed(1)} Z`;
   return `<div class="chart-wrap"><div class="chart-yhi">${moneyBrl(maxY)}</div><div class="chart-ylo">${moneyBrl(minY)}</div>
 <svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" class="chart-svg" role="img" aria-label="${alt}">
-<path d="${area}" fill="rgba(102,192,244,.12)" stroke="none"/><path d="${line}" fill="none" stroke="#66c0f4" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
+<path d="${area}" fill="rgba(240,196,82,.12)" stroke="none"/><path d="${line}" fill="none" stroke="#f0c452" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
 <div class="chart-x"><span>${fd(minX)}</span><span>${fd(maxX)}</span></div></div>`;
 }
 

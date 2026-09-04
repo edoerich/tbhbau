@@ -115,7 +115,7 @@
     const area = `${line} L${sx(maxX).toFixed(1)},${(H - pad).toFixed(1)} L${sx(minX).toFixed(1)},${(H - pad).toFixed(1)} Z`;
     return `<div class="chart-title"><span>${title || t('chart')}</span><span class="muted">${t('pts', pts.length)}</span></div>
       <div class="chart-wrap"><div class="chart-yhi">${moneyBrl(maxY)}</div><div class="chart-ylo">${moneyBrl(minY)}</div>
-      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="chart-svg"><path d="${area}" fill="rgba(102,192,244,.12)"/><path d="${line}" fill="none" stroke="#66c0f4" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
+      <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" class="chart-svg"><path d="${area}" fill="rgba(240,196,82,.12)"/><path d="${line}" fill="none" stroke="#f0c452" stroke-width="1.5" vector-effect="non-scaling-stroke"/></svg>
       <div class="chart-x"><span>${fmtDate(minX)}</span><span>${fmtDate(maxX)}</span></div></div>`;
   }
   async function fetchLive(hash) {

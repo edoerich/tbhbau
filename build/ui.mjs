@@ -3,18 +3,20 @@ import { esc, RARITY_COLOR, moneyBrl, fmtQty } from './lib.mjs';
 
 export const rarityDot = (i, it) => it.rarity ? `<span class="dot" style="background:#${RARITY_COLOR[it.rarity]}" title="${i.t('grade_of', i.rarity(it.rarity))}"></span>` : '';
 export const gradeLabel = (i, it) => it.rarity ? i.rarity(it.rarity) : i.t('grade_material');
+// slot de inventário: ícone pixel com moldura na cor da grade (materiais ficam na cor neutra)
+export const slot = (it, size = '') => it.icon ? `<span class="slot ${size}" style="--rar:#${it.rarity ? RARITY_COLOR[it.rarity] : '6b7280'}"><img src="${esc(it.icon)}" alt="" loading="lazy"></span>` : '';
 export const itemLink = (ctx, it, { icon = true } = {}) =>
-  `<a href="${ctx.itemUrl(it)}">${icon && it.icon ? `<img class="ico" src="${esc(it.icon)}" alt="" loading="lazy" width="28" height="28">` : ''}${esc(it.name)}</a>`;
+  `<a href="${ctx.itemUrl(it)}">${icon ? slot(it, 'sm') : ''}${esc(it.name)}</a>`;
 // preço de anúncio com as duas moedas (o seletor da barra troca)
 export const priceSpan = (ctx, it, cls = '') => ctx.i.moneySpan(it.lowestBrl, it.usdCents || null, cls);
 export const deltaSpan = (i, p) => p == null ? '<span class="muted">—</span>' : `<span class="${p >= 0 ? 'up' : 'down'}">${i.fmtPct(p)}</span>`;
 export const liqSpan = (i, it) => it.liquidez ? `<span class="liq ${it.liquidez}">${i.liq(it.liquidez)}${it.buyCount ? ` (${it.buyCount})` : ''}</span>` : '<span class="muted">—</span>';
 
 // Bloco de destaque: lista curta de itens com um valor à direita
-export function hlBlock(ctx, title, items, valFn, { cls = '' } = {}) {
+export function hlBlock(ctx, title, items, valFn, { cls = '', block = '' } = {}) {
   if (!items.length) return '';
-  return `<div class="hl"><h3>${title}</h3>${items.map(x =>
-    `<a class="row" href="${ctx.itemUrl(x)}">${x.icon ? `<img src="${esc(x.icon)}" alt="" loading="lazy" width="22" height="22">` : ''}<span class="nm">${esc(x.name)}</span><span class="vl ${cls}">${valFn(x)}</span></a>`).join('')}</div>`;
+  return `<div class="hl ${block}"><h3>${title}</h3>${items.map(x =>
+    `<a class="row" href="${ctx.itemUrl(x)}">${slot(x)}<span class="nm">${esc(x.name)}</span><span class="vl ${cls}">${valFn(x)}</span></a>`).join('')}</div>`;
 }
 
 const COLS = {
